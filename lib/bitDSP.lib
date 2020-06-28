@@ -1,0 +1,55 @@
+declare name "bitDSP";
+declare author "LFSaw";
+declare copyright "MIT";
+
+//---------------------------------`(b.)div`---------------------------------------
+// integer division
+//
+// #### Usage
+//
+// ```
+// 31, 32: div
+// ```
+//-----------------------------------------------------------------------------
+div = ffunction(int div (int, int), "bitDSP.h", "");
+
+//---------------------------------`(b.)delay`---------------------------------------
+// single-bit delay on integer bitstream
+//
+// #### Usage
+//
+// ```
+// delay(delta, _)
+// ```
+//-----------------------------------------------------------------------------
+// delay(delta, x) = delay32((delta % 32), x@( (delta, 32) :div )) with {
+	delay32(0, x) = x;
+	delay32(delta, x) = ((x >> delta) | (x' << (32-delta)));
+// };
+
+
+
+//---------------------------------`(b.)print`---------------------------------------
+// print an integer as a bit representation
+//
+// #### Usage
+//
+// ```
+// print(_)
+// ```
+//-----------------------------------------------------------------------------
+print = ffunction(int bit_print (int), "bitDSP.h", "");
+
+
+
+//---------------------------------`(b.)print2`---------------------------------------
+// print an integer as a bit representation, including two slots for (integer) counters. 
+// useful to output sample and channel count. 
+//
+// #### Usage
+//
+// ```
+// print(_)
+// ```
+//-----------------------------------------------------------------------------
+print2 = ffunction(int bit_print2counters (int, int, int), "bitDSP.h", "");
