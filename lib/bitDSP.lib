@@ -2,6 +2,9 @@ declare name "bitDSP";
 declare author "LFSaw";
 declare copyright "MIT";
 
+int_min = fconstant(int INT_MIN, <climits>);
+int_max = fconstant(int INT_MAX, <climits>);
+
 //---------------------------------`(b.)div`---------------------------------------
 // integer division
 //
@@ -9,9 +12,10 @@ declare copyright "MIT";
 //
 // ```
 // 31, 32: div
+// div(31, 32)
 // ```
 //-----------------------------------------------------------------------------
-div = ffunction(int div (int, int), "bitDSP.h", "");
+div = ffunction(int div_i (int, int), "bitDSP.h", "");
 
 //---------------------------------`(b.)delay`---------------------------------------
 // single-bit delay on integer bitstream
@@ -53,3 +57,110 @@ print = ffunction(int bit_print (int), "bitDSP.h", "");
 // ```
 //-----------------------------------------------------------------------------
 print2 = ffunction(int bit_print2counters (int, int, int), "bitDSP.h", "");
+
+
+
+//---------------------------------`(b.)int2binary`---------------------------------------
+// (original by dario (dec2bin), copied from the faust slack channel)
+// 
+//
+// #### Usage
+//
+// ```
+// int2binary(_)
+// ```
+//-----------------------------------------------------------------------------
+int2binary(0) = 0:!;
+int2binary(N) = int2binary(div(N,2)) , N % 2;
+
+
+
+//---------------------------------`(b.)bitDAC_i`---------------------------------------
+// select bits of an integer to be interpreted as PCM values
+// range is [0, 1, .. (2^size)[
+//
+// #### Usage
+//
+// ```
+// bitDAC_i(8, 2, _)
+// ```
+//-----------------------------------------------------------------------------
+bitDAC_i(size, offset, in) = (in & bitmask) >> offset // shift selection to right-most bits
+with {
+	maxval = (1 << size)-1; // maximum value that fits into size
+	bitmask = maxval << offset; // mask selects area of which to create PCM values
+};
+
+
+//---------------------------------`(b.)bitDAC`---------------------------------------
+// select bits of an integer to be interpreted as PCM values
+// range is [0.f .. 1]
+//
+// #### Usage
+//
+// ```
+// bitDAC(8, 2, _)
+// ```
+// 
+// #### Example: 6-bit noise
+// 
+// ```
+// bitDAC(6, 0, int(no.noise * 10));
+// ```
+//-----------------------------------------------------------------------------
+bitDAC(size, offset, in) = normed((in & bitmask) >> offset) // shift selection to right-most bits
+with {
+	maxval = (1 << size)-1; // maximum value that fits into size
+	bitmask = maxval << offset; // mask selects area of which to create PCM values
+	normed(out) = out / (maxval-1); // normalise values to be between 0 and 1 (excl.)
+};
+
+
+
+
+//---------------------------------`(b.)maskedNot`---------------------------------------
+// invert selected bits of an integer
+//
+// #### Usage
+//
+// ```
+// maskedNot(mask, in)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+// maskedNot(mask, in) = (mask & bitNot(in)) | (bitNot(mask) & in);
+
+
+
+//---------------------------------`(b.)maskedAnd`---------------------------------------
+// bit-wise AND of selected bits of two integers. remaining bits are kept from first parameter
+//
+// #### Usage
+//
+// ```
+// maskedAnd(mask, a, b)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+// maskedAnd(mask, a, b) = apply_mask(a&b, a, mask) with {
+//  apply_mask(res, orig, mask) = (mask & res) | (bitNot(mask) & orig);
+// };
+
+//---------------------------------`(b.)maskedOr`---------------------------------------
+// bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
+//
+// #### Usage
+//
+// ```
+// maskedOr(mask, a, b)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+// maskedOr(mask, a, b) = apply_mask(a|b, a, mask) with {
+//  apply_mask(res, orig, mask) = (mask & res) | (bitNot(mask) & orig);
+// };
+
+
+        // bit16 bit_out = ~bit_in; // process
+        // // apply only to selected bits, leave rest alonw
+        // bit_out = (bit_mask & bit_out) | (~bit_mask & bit_in); 
