@@ -5,6 +5,18 @@ declare copyright "MIT";
 int_min = fconstant(int INT_MIN, <climits>);
 int_max = fconstant(int INT_MAX, <climits>);
 
+//---------------------------------`(b.)bitNot`---------------------------------------
+// bitwise Not
+//
+// #### Usage
+//
+// ```
+// 16: bitNot
+// ```
+//-----------------------------------------------------------------------------
+bitNot = ffunction(int bit_not (int), "bitDSP.h", "");
+
+
 //---------------------------------`(b.)div`---------------------------------------
 // integer division
 //
@@ -17,6 +29,20 @@ int_max = fconstant(int INT_MAX, <climits>);
 //-----------------------------------------------------------------------------
 div = ffunction(int div_i (int, int), "bitDSP.h", "");
 
+
+//---------------------------------`(b.)delay32`---------------------------------------
+// single-bit delay on an integer bitstream. maximum of 32bit delays possible.
+//
+// #### Usage
+//
+// ```
+// delay32(delta, _)
+// ```
+//-----------------------------------------------------------------------------
+delay32(0, x) = x;
+delay32(delta, x) = ((x >> delta) | (x' << (32-delta)));
+
+
 //---------------------------------`(b.)delay`---------------------------------------
 // single-bit delay on integer bitstream
 //
@@ -26,10 +52,7 @@ div = ffunction(int div_i (int, int), "bitDSP.h", "");
 // delay(delta, _)
 // ```
 //-----------------------------------------------------------------------------
-// delay(delta, x) = delay32((delta % 32), x@( (delta, 32) :div )) with {
-	delay32(0, x) = x;
-	delay32(delta, x) = ((x >> delta) | (x' << (32-delta)));
-// };
+delay(delta, x) = delay32((delta % 32), x@( (delta, 32) : div ));
 
 
 
@@ -108,10 +131,10 @@ with {
 // bitDAC(6, 0, int(no.noise * 10));
 // ```
 //-----------------------------------------------------------------------------
-bitDAC(size, offset, in) = normed((in & bitmask) >> offset) // shift selection to right-most bits
+bitDAC(offset, size, in) = normed((in & bitmask) >> offset) // shift selection to right-most bits
 with {
 	maxval = (1 << size)-1; // maximum value that fits into size
-	bitmask = maxval << offset; // mask selects area of which to create PCM values
+	bitmask = maxval << offset; // mask selects area in which to create PCM values
 	normed(out) = out / (maxval-1); // normalise values to be between 0 and 1 (excl.)
 };
 
@@ -129,7 +152,7 @@ with {
 // TODO: wait for bitNOT implementation
 //-----------------------------------------------------------------------------
 // maskedNot(mask, in) = (mask & bitNot(in)) | (bitNot(mask) & in);
-
+maskedNot(mask, in) = applyMask(bitNot(in), a, mask);
 
 
 //---------------------------------`(b.)maskedAnd`---------------------------------------
@@ -142,9 +165,8 @@ with {
 // ```
 // TODO: wait for bitNOT implementation
 //-----------------------------------------------------------------------------
-// maskedAnd(mask, a, b) = apply_mask(a&b, a, mask) with {
-//  apply_mask(res, orig, mask) = (mask & res) | (bitNot(mask) & orig);
-// };
+maskedAnd(mask, a, b) = applyMask(a&b, a, mask);
+
 
 //---------------------------------`(b.)maskedOr`---------------------------------------
 // bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
@@ -156,11 +178,30 @@ with {
 // ```
 // TODO: wait for bitNOT implementation
 //-----------------------------------------------------------------------------
-// maskedOr(mask, a, b) = apply_mask(a|b, a, mask) with {
-//  apply_mask(res, orig, mask) = (mask & res) | (bitNot(mask) & orig);
-// };
+maskedOr(mask, a, b) = applyMask(a|b, a, mask);
 
 
-        // bit16 bit_out = ~bit_in; // process
-        // // apply only to selected bits, leave rest alonw
-        // bit_out = (bit_mask & bit_out) | (~bit_mask & bit_in); 
+//---------------------------------`(b.)maskedXor`---------------------------------------
+// bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
+//
+// #### Usage
+//
+// ```
+// maskedXor(mask, a, b)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+maskedXor(mask, a, b) = applyMask(xor(a,b), a, mask);
+
+
+//---------------------------------`(b.)applyMask`---------------------------------------
+// bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
+//
+// #### Usage
+//
+// ```
+// applyMask(res, org, mask)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+applyMask(res, org, mask) = (mask & res) | (bitNot(mask) & orig);

@@ -20,6 +20,9 @@ typedef std::bitset<32> bit32;
 //     return ((current >> amount) | (last << (32-amount)));
 // }
 
+int bit_not(int x) {
+	return ~x;
+}
 
 int div_i(int x, int y) {
 	return x/y;
