@@ -212,6 +212,25 @@ applyMask(res, org, mask) = (mask & res) | (bitNot(mask) & orig);
 //==============================================================================
 //==============================================================================
 
+// cic(N, CF[n], x[n]); --------------------------------------------------------
+//
+// Comb-integrator circuit lowpass filter.
+// Based on Eric Lyon's: https://www.dsprelated.com/showarticle/1337.php.
+//
+// 2 inputs:
+//    CF[n], cut-off frequency in Hz;
+//    x[n].
+//
+// 1 outputs:
+//    y[n], lowpassed x[n].
+//
+// 1 compile-time arguments: 
+//    "N", (integer) order of the filter.
+//
+cic(N, cf, x) = x : seq(i, N, delta(1, .5 / cf) :
+    fi.pole(1)) / (.5 / cf * ma.SR) ^ N;
+// -----------------------------------------------------------------------------
+
 // dec2bin(N); -----------------------------------------------------------------
 //
 // It converts a decimal integer (N) into a Faust list containing the binary
@@ -231,6 +250,24 @@ applyMask(res, org, mask) = (mask & res) | (bitNot(mask) & orig);
 dec2bin(0) = 0:!;
 dec2bin(N) =   dec2bin(int(N / 2)) ,
                N % 2;
+// -----------------------------------------------------------------------------
+
+// delta(S, dt[n], x[n]); ------------------------------------------------------
+//
+// First derivative using linear interpolation delay lines, hence
+// allowing fractional differentiation periods.
+//
+// 2 inputs:
+//    dt[n], differentiation period in seconds;
+//    x[n].
+//
+// 1 outputs:
+//    y[n], first derivative of x[n].
+//
+// 1 compile-time arguments:
+//    S, maximum differentiation period in seconds.
+//
+delta(s, t, in) =  in - de.fdelay(size * ma.SR, del * ma.SR, in);
 // -----------------------------------------------------------------------------
 
 // eca(L, R, I, rate[n]); ------------------------------------------------------
