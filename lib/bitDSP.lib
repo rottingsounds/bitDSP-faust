@@ -212,6 +212,35 @@ applyMask(res, org, mask) = (mask & res) | (bitNot(mask) & orig);
 //==============================================================================
 //==============================================================================
 
+// bool_osc1(del1[n], del2[n]); ------------------------------------------------
+//
+// Basic Boolean oscillator with two cross-coupled nodes, mainly for 
+// chaotic oscillations including limit cycles and strange attractors.
+//
+// The future development of this approach could be to have a set of
+// nodes with specific Boolean processes that can be combined in
+// networks of arbitrary sizes and topology by simple argument
+// specification.
+//
+// 2 inputs:
+//    del1[n], delay of the output of the first node (1 sec max);
+//    del2[n], delay of the output of the second node (1 sec max);
+//
+// 2 outputs:
+//    y1[n], first node;
+//    y2[n], second node.
+//
+bool_osc1(del1, del2) =    node1 ,
+                           node2
+      letrec {
+           'node1 = not(node1 xor node2 & node1) @ max(0, min(ma.SR, del1));
+           'node2 = not(node2 xor node1 xor node2) @ max(0, min(ma.SR, del2));
+      } 
+      with {
+           not(x) = 1 - x;
+      };
+// -----------------------------------------------------------------------------
+
 // cic(N, CF[n], x[n]); --------------------------------------------------------
 //
 // Comb-integrator circuit lowpass filter.
