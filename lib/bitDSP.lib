@@ -2,6 +2,12 @@ declare name "bitDSP";
 declare author "LFSaw (Till Bovermann), Dario Sanfilippo";
 declare copyright "MIT";
 
+// import("stdfaust.lib");
+// only import what is necessary
+// sc = library("scUGens.lib"); // part of https://github.com/tai-studio/faust-sc
+// lf = library("taiStudio.lib"); // part of https://github.com/tai-studio/faust-sc
+si = library("signals.lib");
+
 int_min = fconstant(int INT_MIN, <climits>);
 int_max = fconstant(int INT_MAX, <climits>);
 
