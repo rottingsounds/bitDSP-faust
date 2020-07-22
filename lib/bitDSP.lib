@@ -272,54 +272,54 @@ dsm1_32 = dsm1(32); // version fixed to 32bit output encoding
 // dsm1(N) = dsm1_ff_path(N) ~ si.bus(outputs(dsm1_one_step)-1) : par(i, outputs(dsm1_one_step)-1, !), _;
 dsm1(N) =  _, 0 : dsm1_ff_path(N) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _ 
 with {
-// --------- dsm1_one_step
-// compute one sample dsm1 and pass around state.
-// x — input, 
-// out_prev — (previous) output, 
-// first params (s0, s1) are internal states
-// in order for correct unfolding of operators, it is required to write n-dimensional 
-// function as lambda-statement. 
-// 
-// single application with initial states == 0
-// process = par(i, outputs(dsm1_one_step)-1, 0), _ : dsm1_one_step : par(i, outputs(dsm1_one_step)-1, !), _;
-// (time-recursive) feedback application
-// process = -1, 0 : dsm1_one_step ~ si.bus(outputs(dsm1_one_step)-2) : !, !, !, _;
-dsm1_one_step = \(s0_prev, s1_prev, x, out_prev).(s0, s1, x, out 
-with {
-    s0 = x - s1_prev + s0_prev;
-    s1 = s0 >=0 : select2(_, -1, 1); // bi-modal (for computation)
-    out = s1 > 0; // make uni-modal
-});
+  // --------- dsm1_one_step
+  // compute one sample dsm1 and pass around state.
+  // x — input, 
+  // out_prev — (previous) output, 
+  // first params (s0, s1) are internal states
+  // in order for correct unfolding of operators, it is required to write n-dimensional 
+  // function as lambda-statement. 
+  // 
+  // single application with initial states == 0
+  // process = par(i, outputs(dsm1_one_step)-1, 0), _ : dsm1_one_step : par(i, outputs(dsm1_one_step)-1, !), _;
+  // (time-recursive) feedback application
+  // process = -1, 0 : dsm1_one_step ~ si.bus(outputs(dsm1_one_step)-2) : !, !, !, _;
+  dsm1_one_step = \(s0_prev, s1_prev, x, out_prev).(s0, s1, x, out 
+  with {
+      s0 = x - s1_prev + s0_prev;
+      s1 = s0 >=0 : select2(_, -1, 1); // bi-modal (for computation)
+      out = s1 > 0; // make uni-modal
+  });
 
-// --------- oversample_snh
-// oversample with sample and hold
-// f needs to have a list as argument, with
-// + first element being the output of the last evaluation, 
-// + previous list items are (optional) intermediate states.
-// + last list item is the input.
-//
-// process = 0.5 : \(x).(oversample_snh(3, dsm1_one_step, (0, 1, x, 3)));
-// 
-oversample_snh(1, func, x) = x : func;
-oversample_snh(N, func, x) = oversample_snh(N-1, func, y(func, x)), y_out(func, x)
-with {
-    y(func, x) = x : func;
-    // block everything but last value (i.e. output) 
-    y_out(func, x) = y(func, x) : par(i, outputs(func)-1, !), _; 
-};
+  // --------- oversample_snh
+  // oversample with sample and hold
+  // f needs to have a list as argument, with
+  // + first element being the output of the last evaluation, 
+  // + previous list items are (optional) intermediate states.
+  // + last list item is the input.
+  //
+  // process = 0.5 : \(x).(oversample_snh(3, dsm1_one_step, (0, 1, x, 3)));
+  // 
+  oversample_snh(1, func, x) = x : func;
+  oversample_snh(N, func, x) = oversample_snh(N-1, func, y(func, x)), y_out(func, x)
+  with {
+      y(func, x) = x : func;
+      // block everything but last value (i.e. output) 
+      y_out(func, x) = y(func, x) : par(i, outputs(func)-1, !), _; 
+  };
 
-// --------- dsm1_ff_path
-// feed-forward path of N calculations
-// FIXME: allow arbitrary number `N` of intermediate fbck channels
-// see [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
-// 
-// process = 0, 0, -0.4, 0 : dsm1_ff_path(1);
-// process =  _, 0 : dsm1_ff_path(3) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _;
-//
-dsm1_ff_path(N) = \(s0, s1, x, out_prev).(oversample_snh(N, dsm1_one_step, (s0, s1, x, out_prev))) : si.bus(numVars), binBus2int(N)
-with {
-    numVars = outputs(dsm1_one_step)-1;
-};
+  // --------- dsm1_ff_path
+  // feed-forward path of N calculations
+  // FIXME: allow arbitrary number `N` of intermediate fbck channels
+  // see [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
+  // 
+  // process = 0, 0, -0.4, 0 : dsm1_ff_path(1);
+  // process =  _, 0 : dsm1_ff_path(3) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _;
+  //
+  dsm1_ff_path(N) = \(s0, s1, x, out_prev).(oversample_snh(N, dsm1_one_step, (s0, s1, x, out_prev))) : si.bus(numVars), binBus2int(N)
+  with {
+      numVars = outputs(dsm1_one_step)-1;
+  };
 };
 
 /******************************************************************************* 
