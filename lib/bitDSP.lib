@@ -268,48 +268,58 @@ int2binBus(N) = _ <: si.bus(N) : par(i, N, ((1 << i) & _) != 0);
 // with
 // + input a float signal in the range [-1, 1]
 // + output a binary stream split into chuncks of 32 values packed in 32bit integers, thus resulting in 32x oversampling.
-dsm1_32 = dsm1(32); // version wixed to 32bit output encoding
-dsm1(N) = dsm1_fbck_path(N) ~ si.bus(outputs(dsm1_one_step)-1) : par(i, outputs(dsm1_one_step)-1, !), _ with {
+dsm1_32 = dsm1(32); // version fixed to 32bit output encoding
+// dsm1(N) = dsm1_ff_path(N) ~ si.bus(outputs(dsm1_one_step)-1) : par(i, outputs(dsm1_one_step)-1, !), _;
+dsm1(N) =  _, 0 : dsm1_ff_path(N) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _ 
+with {
+// --------- dsm1_one_step
+// compute one sample dsm1 and pass around state.
+// x — input, 
+// out_prev — (previous) output, 
+// first params (s0, s1) are internal states
+// in order for correct unfolding of operators, it is required to write n-dimensional 
+// function as lambda-statement. 
+// 
+// single application with initial states == 0
+// process = par(i, outputs(dsm1_one_step)-1, 0), _ : dsm1_one_step : par(i, outputs(dsm1_one_step)-1, !), _;
+// (time-recursive) feedback application
+// process = -1, 0 : dsm1_one_step ~ si.bus(outputs(dsm1_one_step)-2) : !, !, !, _;
+dsm1_one_step = \(s0_prev, s1_prev, x, out_prev).(s0, s1, x, out 
+with {
+    s0 = x - s1_prev + s0_prev;
+    s1 = s0 >=0 : select2(_, -1, 1); // bi-modal (for computation)
+    out = s1 > 0; // make uni-modal
+});
 
-    // FIXME: allow arbitrary number `N` of intermediate fbck channels
-    // see [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
-    dsm1_fbck_path(N) = \(s0, s1, out_prev, x).(oversample_snh(N, dsm1_one_step, (s0, s1, out_prev, x))) : si.bus(numVars), binBus2int(N)
-    with {
-        numVars = outputs(dsm1_one_step)-1;
-    };
+// --------- oversample_snh
+// oversample with sample and hold
+// f needs to have a list as argument, with
+// + first element being the output of the last evaluation, 
+// + previous list items are (optional) intermediate states.
+// + last list item is the input.
+//
+// process = 0.5 : \(x).(oversample_snh(3, dsm1_one_step, (0, 1, x, 3)));
+// 
+oversample_snh(1, func, x) = x : func;
+oversample_snh(N, func, x) = oversample_snh(N-1, func, y(func, x)), y_out(func, x)
+with {
+    y(func, x) = x : func;
+    // block everything but last value (i.e. output) 
+    y_out(func, x) = y(func, x) : par(i, outputs(func)-1, !), _; 
+};
 
-    // compute one sample dsm1 and pass around state.
-    // last param is input, 
-    // snd-last param is (previous) output, 
-    // first params are internal states
-    // in order for correct unfolding of operators, it is required to write n-dimensional 
-    // function as lambda-statement. 
-    // 
-    // single application with initial states == 0
-    // process = par(i, outputs(dsm1_one_step)-1, 0), _ : dsm1_one_step : par(i, outputs(dsm1_one_step)-1, !), _;
-    // (time-recursive) feedback application
-    // process = _ : dsm1_one_step ~ si.bus(outputs(dsm1_one_step)-1);
-    dsm1_one_step = \(s0_prev, s1_prev, permanentIn, out_prev).(s0, s1, permanentIn, out 
-    with {
-        s0 = permanentIn - s1_prev + s0_prev;
-        s1 = s0 >=0 : select2(_, -1, 1); // bi-modal (for computation)
-        out = s1 > 0; // make uni-modal
-    });
-
-    // oversample with sample and hold
-    // f needs to have a list as argument, with
-    // + first element being the output of the last evaluation, 
-    // + previous list items are (optional) intermediate states.
-    // + last list item is the input.
-    // 
-    // process = \(x).(oversample_snh(3, dsm1_one_step, (0, 1, x, 3)));
-    oversample_snh(1, f, x) = x : f;
-    oversample_snh(N, f, x) = oversample_snh(N-1, f, f_x), f_x_out 
-    with {
-        f_x = x : f;
-        // block everything but second-last value (i.e. output) 
-        f_x_out = f_x : par(i, outputs(f)-1, !), _; 
-    };
+// --------- dsm1_ff_path
+// feed-forward path of N calculations
+// FIXME: allow arbitrary number `N` of intermediate fbck channels
+// see [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
+// 
+// process = 0, 0, -0.4, 0 : dsm1_ff_path(1);
+// process =  _, 0 : dsm1_ff_path(3) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _;
+//
+dsm1_ff_path(N) = \(s0, s1, x, out_prev).(oversample_snh(N, dsm1_one_step, (s0, s1, x, out_prev))) : si.bus(numVars), binBus2int(N)
+with {
+    numVars = outputs(dsm1_one_step)-1;
+};
 };
 
 /******************************************************************************* 
