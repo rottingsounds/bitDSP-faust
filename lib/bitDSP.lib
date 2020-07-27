@@ -419,6 +419,46 @@ dec2bin(N) =   dec2bin(int(N / 2)) ,
 delta(s, t, in) =  in - de.fdelay(size * ma.SR, del * ma.SR, in);
 // -----------------------------------------------------------------------------
 
+// dsm2(x[n]); -----------------------------------------------------------------
+//
+// Second-order digital delta-sigma modulator.
+//
+// 1 inputs:
+//    x[n];
+//
+// 1 outputs:
+//    y[n], modulated input in the range [-1; 1].
+//
+dsm2(x) =  loop
+           ~ _
+      with {
+           loop(fb) = x - fb : fi.pole(1) - fb : fi.pole(1) : Q;
+           Q(z) = select2(z < 0, 1, -1);
+      };
+// -----------------------------------------------------------------------------
+
+// dsm3(x[n]); -----------------------------------------------------------------
+//
+// Third-order digital delta-sigma modulator.
+//
+// 1 inputs:
+//    x[n];
+//
+// 1 outputs:
+//    y[n], modulated input in the range [-1; 1].
+//
+dsm3(x) = Q
+    letrec {
+        'delta1 = x / 4 - Q / 4;
+        'sigma1 = fi.pole(1, delta1);
+        'delta2 = sigma1 / 3 - sigma3 / 9 - Q / 3;
+        'sigma2 = fi.pole(1, delta2);
+        'delta3 = sigma2 / 8 - Q / 8;
+        'sigma3 = fi.pole(1, delta3);
+        'Q = ba.if(sigma3 < 0, -1, 1);
+    };
+// -----------------------------------------------------------------------------
+
 // eca(L, R, I, rate[n]); ------------------------------------------------------
 //
 // One-dimension, two-state, elementary cellular automata with circular
