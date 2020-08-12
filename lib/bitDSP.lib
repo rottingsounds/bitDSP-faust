@@ -2,437 +2,57 @@ declare name "bitDSP";
 declare author "LFSaw (Till Bovermann), Dario Sanfilippo";
 declare copyright "MIT";
 
-// import("stdfaust.lib");
-// only import what is necessary
+// bin = library("bitDSP"); // main library
+// bin32 = library("bitDSP_int32"); // int32-based library
+// binBus = library("bitDSP_binBus"); // int32-based library
+// binConv = library("bitDSP_conversion"); // conversion between formats library
+
 // sc = library("scUGens.lib"); // part of https://github.com/tai-studio/faust-sc
 // lf = library("taiStudio.lib"); // part of https://github.com/tai-studio/faust-sc
+
+// import("stdfaust.lib");
+// only import what is necessary
+// 
+// an = library("analyzers.lib");
+ba = library("basics.lib");
+// co = library("compressors.lib");
+de = library("delays.lib");
+// dm = library("demos.lib");
+// dx = library("dx7.lib");
+// en = library("envelopes.lib");
+// fi = library("filters.lib");
+// ho = library("hoa.lib");
+// it = library("interpolators.lib");
+ma = library("maths.lib");
+// mi = library("mi.lib");
+// ef = library("misceffects.lib");
+// os = library("oscillators.lib");
+// no = library("noises.lib");
+// pf = library("phaflangers.lib");
+// pl = library("platform.lib");
+// pm = library("physmodels.lib");
+// rm = library("reducemaps.lib");
+// re = library("reverbs.lib");
+// ro = library("routes.lib");
+// sp = library("spats.lib");
 si = library("signals.lib");
+// so = library("soundfiles.lib");
+// sy = library("synths.lib");
+// ve = library("vaeffects.lib");
+// wa = library("webaudio.lib");
+// sf = library("all.lib");
+// vl = library("version.lib");
+
 
 int_min = fconstant(int INT_MIN, <climits>);
 int_max = fconstant(int INT_MAX, <climits>);
 
-//---------------------------------`(b.)bitNot`---------------------------------------
-// bitwise Not
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// 16: bitNot
-// ```
-//-----------------------------------------------------------------------------
-bitNot = ffunction(int bit_not (int), "bitDSP.h", "");
 
-
-//---------------------------------`(b.)div`---------------------------------------
-// integer division
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// 31, 32: div
-// div(31, 32)
-// ```
-//-----------------------------------------------------------------------------
-div = ffunction(int div_i (int, int), "bitDSP.h", "");
-
-
-//---------------------------------`(b.)delay32`---------------------------------------
-// single-bit delay on an integer bitstream. maximum of 32bit delays possible.
-//
-// #### Usage
-//
-// ```
-// delay32(delta, _)
-// ```
-//-----------------------------------------------------------------------------
-delay32(0, x) = x;
-delay32(delta, x) = ((x >> delta) | (x' << (32-delta)));
-
-
-//---------------------------------`(b.)delay`---------------------------------------
-// single-bit delay on integer bitstream
-//
-// #### Usage
-//
-// ```
-// delay(delta, _)
-// ```
-//-----------------------------------------------------------------------------
-delay(delta, x) = delay32((delta % 32), x@( (delta, 32) : div ));
-
-
-
-//---------------------------------`(b.)print`---------------------------------------
-// print an integer as a bit representation
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// _ : print
-// ```
-//-----------------------------------------------------------------------------
-print = ffunction(int bit_print (int), "bitDSP.h", "");
-
-
-
-//---------------------------------`(b.)print2`---------------------------------------
-// print an integer as a bit representation, including two slots for (integer) counters. 
-// useful to output sample and channel count. 
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// _ : print2(_, _)
-// ```
-//-----------------------------------------------------------------------------
-print2 = ffunction(int bit_print2counters (int, int, int), "bitDSP.h", "");
-
-//---------------------------------`(b.)left_shift`---------------------------------------
-// unsigned left shift operator
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// _ : left_shift(_)
-// ```
-//-----------------------------------------------------------------------------
-left_shift = ffunction(int bit_leftShift (int, int), "bitDSP.h", "");
-
-
-//---------------------------------`(b.)right_shift`---------------------------------------
-// unsigned right shift operator
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// _ : right_shift(_)
-// ```
-//-----------------------------------------------------------------------------
-right_shift = ffunction(int bit_rightShift (int, int), "bitDSP.h", "");
-
-
-//---------------------------------`(b.)bit_mask`---------------------------------------
-// create bit mask with indices at list values == 1
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// bit_mask(si.bus(N)) : _
-// ```
-//-----------------------------------------------------------------------------
-bit_mask((n, ns)) = bit_mask(ns) | left_shift(1, n);
-bit_mask(n) = left_shift(1, n);
-
-
-//---------------------------------`(b.)parity`---------------------------------------
-// compute parity of a 32bit integer (assuming it to be unsigned)
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-// #### Usage
-//
-// ```
-// _ : parity : _
-// ```
-//-----------------------------------------------------------------------------
-parity = ffunction(int parity (int), "bitDSP.h", "");
-
-
-
-//---------------------------------`(b.)lfsr`---------------------------------------
-// compute lfsr on a 32bit integer bitset (assuming it to be unsigned)
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// _ : lfsr(mask) : _
-// ```
-// with
-// + `mask` — determining which bits to consider for the parity computation
-//-----------------------------------------------------------------------------
-lfsr(mask, in) = step(mask, in) ~ _ with {
-        step(mask, in, fbIn) = selector(in, fbIn) <: (parity(_ & mask), left_shift(_, 1)) : |;
-        selector(a, b) = select2(changed(a), b, a);
-        changed(x) = x != x';
-};
-
-
-
-//---------------------------------`(b.)int2binary`---------------------------------------
-// (original by dario (dec2bin), copied from the faust slack channel)
-// 
-//
-// #### Usage
-//
-// ```
-// int2binary(_)
-// ```
-//-----------------------------------------------------------------------------
-int2binary(0) = 0:!;
-int2binary(N) = int2binary(div(N,2)) , N % 2;
-
-
-
-//---------------------------------`(b.)bitDAC_i`---------------------------------------
-// select bits of an integer to be interpreted as PCM values
-// range is [0, 1, .. (2^size)[
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-// #### Usage
-//
-// ```
-// bitDAC_i(8, 2, _)
-// ```
-//-----------------------------------------------------------------------------
-bitDAC_i(size, offset, in) = right_shift((in & bitmask), offset) // shift selection to right-most bits
-with {
-	maxval = left_shift(1,size)-1; // maximum value that fits into size
-	bitmask = left_shift(maxval, offset); // mask selects area of which to create PCM values
-};
-
-
-//---------------------------------`(b.)bitDAC`---------------------------------------
-// select bits of an integer to be interpreted as PCM values
-// range is [0.f .. 1]
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-// #### Usage
-//
-// ```
-// bitDAC(8, 2, _)
-// ```
-// 
-// #### Example: 6-bit noise
-// 
-// ```
-// bitDAC(6, 0, int(no.noise * 10));
-// ```
-//-----------------------------------------------------------------------------
-bitDAC(offset, size, in) = normed(right_shift((in & bitmask), offset)) // shift selection to right-most bits
-with {
-  maxval = left_shift(1,size)-1; // maximum value that fits into size
-  bitmask = left_shift(maxval, offset); // mask selects area of which to create PCM values
-	normed(out) = out / (maxval-1); // normalise values to be between 0 and 1 (excl.)
-};
-
-
-
-
-//---------------------------------`(b.)maskedNot`---------------------------------------
-// invert selected bits of an integer
-//
-// note: relies on foreign functions (c-based platforms only)
-//
-//
-// #### Usage
-//
-// ```
-// maskedNot(mask, in)
-// ```
-// TODO: wait for bitNOT implementation
-//-----------------------------------------------------------------------------
-// maskedNot(mask, in) = (mask & bitNot(in)) | (bitNot(mask) & in);
-maskedNot(mask, in) = applyMask(bitNot(in), a, mask);
-
-
-//---------------------------------`(b.)maskedAnd`---------------------------------------
-// bit-wise AND of selected bits of two integers. remaining bits are kept from first parameter
-//
-// #### Usage
-//
-// ```
-// maskedAnd(mask, a, b)
-// ```
-// TODO: wait for bitNOT implementation
-//-----------------------------------------------------------------------------
-maskedAnd(mask, a, b) = applyMask(a&b, a, mask);
-
-
-//---------------------------------`(b.)maskedOr`---------------------------------------
-// bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
-//
-// #### Usage
-//
-// ```
-// maskedOr(mask, a, b)
-// ```
-// TODO: wait for bitNOT implementation
-//-----------------------------------------------------------------------------
-maskedOr(mask, a, b) = applyMask(a|b, a, mask);
-
-
-//---------------------------------`(b.)maskedXor`---------------------------------------
-// bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
-//
-// #### Usage
-//
-// ```
-// maskedXor(mask, a, b)
-// ```
-// TODO: wait for bitNOT implementation
-//-----------------------------------------------------------------------------
-maskedXor(mask, a, b) = applyMask(xor(a,b), a, mask);
-
-
-//---------------------------------`(b.)applyMask`---------------------------------------
-// bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
-//
-// #### Usage
-//
-// ```
-// applyMask(res, org, mask)
-// ```
-// TODO: wait for bitNOT implementation
-//-----------------------------------------------------------------------------
-applyMask(res, org, mask) = (mask & res) | (bitNot(mask) & orig);
-
-
-//---------------------------------`(b.)binBus2int`---------------------------------------
-// turn a stream of parallel binary values into an integer representation by 
-// left-shifting (<<) the values of the input busses. 
-// 
-// assumes values in parallel streams to be either int(0) or int(1)
-//
-// #### Usage
-//
-// ```
-// sine = sc.sine(1000, 0); // a float sine wave in [-1, 1]
-// process = int(sine * scale) : int2binBus(32) <: si.bus(32), (binBus2int(32) / scale) with {
-//     scale = 2147483647;
-// };
-// ```
-// 
-// ```
-// process = (1, 0, 0, 1, 1, 1) : dsBus2int(6);
-// ```
-binBus2int(N) = si.bus(N) : sum(i, N, _ << i);
-// binBusBus2int_custom — alternative implementation
-// TODO: fix `left_shift((x0, x1, x2, x3, x4, x5)` for fixed but arbitrary number of channels
-// see mail [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
-//
-// binBusBus2int_custom(N) = si.bus(N) : \(x0, x1, x2, x3, x4, x5).(left_shift((x0, x1, x2, x3, x4, x5))) with {
-//     left_shift((x, xs)) = left_shift(xs) & ((x > 0) << 1) ;
-//     left_shift(x) = x > 0;
-// };
-// // process = (1, 0, 0, 1, 1, 1) : dsBus2int_custom(6);
-
-
-
-//---------------------------------`(b.)int2binBus`---------------------------------------
-// turn an integer signal into a stream of parallel binary values
-// left-shifting (<<) the values of the input busses. 
-// 
-// assumes values in parallel streams to be either int(0) or int(1)
-//
-// #### Usage
-//
-// ```
-// sine = sc.sine(1000, 0); // a float sine wave in [-1, 1]
-// process = int(sine * scale) : int2binBus(32) <: si.bus(32), (binBus2int(32) / scale) with {
-//     scale = 2147483647;
-// };
-// ```
-int2binBus(N) = _ <: si.bus(N) : par(i, N, ((1 << i) & _) != 0);
-
-
-//---------------------------------`(b.)dsm1_32`---------------------------------------
-// delta-sigma converter for a float-encoded multibit-stream. 
-// It turns the incoming signal into a binary stream packed into chuncks of a 32bit integer signal. 
-// 
-//
-// #### Usage
-//
-// ```
-// _ : dsm1_32 : _;
-// ```
-// with
-// + input a float signal in the range [-1, 1]
-// + output a binary stream split into chuncks of 32 values packed in 32bit integers, thus resulting in 32x oversampling.
-dsm1_32 = dsm1(32); // version fixed to 32bit output encoding
-// dsm1(N) = dsm1_ff_path(N) ~ si.bus(outputs(dsm1_one_step)-1) : par(i, outputs(dsm1_one_step)-1, !), _;
-dsm1(N) =  _, 0 : dsm1_ff_path(N) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _ 
-with {
-  // --------- dsm1_one_step
-  // compute one sample dsm1 and pass around state.
-  // x — input, 
-  // out_prev — (previous) output, 
-  // first params (s0, s1) are internal states
-  // in order for correct unfolding of operators, it is required to write n-dimensional 
-  // function as lambda-statement. 
-  // 
-  // single application with initial states == 0
-  // process = par(i, outputs(dsm1_one_step)-1, 0), _ : dsm1_one_step : par(i, outputs(dsm1_one_step)-1, !), _;
-  // (time-recursive) feedback application
-  // process = -1, 0 : dsm1_one_step ~ si.bus(outputs(dsm1_one_step)-2) : !, !, !, _;
-  dsm1_one_step = \(s0_prev, s1_prev, x, out_prev).(s0, s1, x, out 
-  with {
-      s0 = x - s1_prev + s0_prev;
-      s1 = s0 >=0 : select2(_, -1, 1); // bi-modal (for computation)
-      out = s1 > 0; // make uni-modal
-  });
-
-  // --------- oversample_snh
-  // oversample with sample and hold
-  // f needs to have a list as argument, with
-  // + first element being the output of the last evaluation, 
-  // + previous list items are (optional) intermediate states.
-  // + last list item is the input.
-  //
-  // process = 0.5 : \(x).(oversample_snh(3, dsm1_one_step, (0, 1, x, 3)));
-  // 
-  oversample_snh(1, func, x) = x : func;
-  oversample_snh(N, func, x) = oversample_snh(N-1, func, y(func, x)), y_out(func, x)
-  with {
-      y(func, x) = x : func;
-      // block everything but last value (i.e. output) 
-      y_out(func, x) = y(func, x) : par(i, outputs(func)-1, !), _; 
-  };
-
-  // --------- dsm1_ff_path
-  // feed-forward path of N calculations
-  // FIXME: allow arbitrary number `N` of intermediate fbck channels
-  // see [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
-  // 
-  // process = 0, 0, -0.4, 0 : dsm1_ff_path(1);
-  // process =  _, 0 : dsm1_ff_path(3) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _;
-  //
-  dsm1_ff_path(N) = \(s0, s1, x, out_prev).(oversample_snh(N, dsm1_one_step, (s0, s1, x, out_prev))) : si.bus(numVars), binBus2int(N)
-  with {
-      numVars = outputs(dsm1_one_step)-1;
-  };
-};
-
-/******************************************************************************* 
-	   Begin of Dario's section
-*******************************************************************************/
+/////////////////////////// oscillators
 
 // bool_osc1(del1[n], del2[n]); ------------------------------------------------
+//
+// (author: Dario Sanfilipo) 
 //
 // Basic Boolean oscillator with two cross-coupled nodes, mainly for 
 // chaotic oscillations including limit cycles and strange attractors.
@@ -463,6 +83,8 @@ bool_osc1(del1, del2) =    node1 ,
 
 // cic(N, CF[n], x[n]); --------------------------------------------------------
 //
+// (author: Dario Sanfilipo) 
+//
 // Comb-integrator circuit lowpass filter.
 // Based on Eric Lyon's: https://www.dsprelated.com/showarticle/1337.php.
 //
@@ -480,28 +102,10 @@ cic(N, cf, x) = x : seq(i, N, delta(1, .5 / cf) :
     fi.pole(1)) / (.5 / cf * ma.SR) ^ N;
 // -----------------------------------------------------------------------------
 
-// dec2bin(N); -----------------------------------------------------------------
-//
-// It converts a decimal integer (N) into a Faust list containing the binary
-// digits, that is, the binary digits in parallel.
-//
-// 0 inputs.
-//
-// M = ceil(ma.log2(N)) outputs:
-//    y1[n];
-//    y2[n];
-//    ...;
-//    yM[n], binary digits representing N.
-//
-// 1 compile-time arguments:
-//    N, decimal integer number.
-//
-dec2bin(0) = 0:!;
-dec2bin(N) =   dec2bin(int(N / 2)) ,
-               N % 2;
-// -----------------------------------------------------------------------------
 
 // delta(S, dt[n], x[n]); ------------------------------------------------------
+//
+// (author: Dario Sanfilipo) 
 //
 // First derivative using linear interpolation delay lines, hence
 // allowing fractional differentiation periods.
@@ -521,6 +125,8 @@ delta(s, t, in) =  in - de.fdelay(size * ma.SR, del * ma.SR, in);
 
 // dsm2(x[n]); -----------------------------------------------------------------
 //
+// (author: Dario Sanfilipo) 
+//
 // Second-order digital delta-sigma modulator.
 //
 // 1 inputs:
@@ -539,7 +145,9 @@ dsm2(x) =  loop
 
 // dsm3(x[n]); -----------------------------------------------------------------
 //
-// Currently unstable and not working: it needs to be fixed.
+// (author: Dario Sanfilipo) 
+//
+// FIXME: Currently unstable and not working: it needs to be fixed.
 //
 // Third-order digital delta-sigma modulator.
 //
@@ -549,21 +157,23 @@ dsm2(x) =  loop
 // 1 outputs:
 //    y[n], modulated input in the range [-1; 1].
 //
-dsm3(x) = Q
-    letrec {
-        'delta1 = x / 4 - Q / 4;
-        'sigma1 = fi.pole(1, delta1);
-        'delta2 = sigma1 / 3 - sigma3 / 9 - Q / 3;
-        'sigma2 = fi.pole(1, delta2);
-        'delta3 = sigma2 / 8 - Q / 8;
-        'sigma3 = fi.pole(1, delta3);
-        'Q = ba.if(sigma3 < 0, -1, 1);
-    };
+// dsm3(x) = Q
+//     letrec {
+//         'delta1 = x / 4 - Q / 4;
+//         'sigma1 = fi.pole(1, delta1);
+//         'delta2 = sigma1 / 3 - sigma3 / 9 - Q / 3;
+//         'sigma2 = fi.pole(1, delta2);
+//         'delta3 = sigma2 / 8 - Q / 8;
+//         'sigma3 = fi.pole(1, delta3);
+//         'Q = ba.if(sigma3 < 0, -1, 1);
+//     };
 // -----------------------------------------------------------------------------
 
 // dsm5(x); --------------------------------------------------------------------
 //
-// Currently unstable and not working: it needs to be fixed.
+// (author: Dario Sanfilipo) 
+//
+// FIXME: Currently unstable and not working: it needs to be fixed.
 //
 // 5th-order feedforward delta-sigma modulator.
 //
@@ -573,129 +183,21 @@ dsm3(x) = Q
 // 1 outputs:
 //    y[n], modulated input in the range [-1; 1].
 //
-dsm5(x) = Q
-      letrec {
-           'delta = x - Q;
-           'sigma1 = fi.pole(1, delta);
-           'sigma2 = fi.pole(1, sigma1);
-           'sigma3 = fi.pole(1, sigma2);
-           'sigma4 = fi.pole(1, sigma3);
-           'sigma5 = fi.pole(1, sigma4);
-           'Q = select2((  0.5761069262 * sigma1 + 
-                           0.1624753515 * sigma2 + 
-                           0.0276093301 * sigma3 + 
-                           0.0028053934 * sigma4 +
-                           0.0001360361 * sigma5) < 0, 1, -1);
-      };
+// dsm5(x) = Q
+//       letrec {
+//            'delta = x - Q;
+//            'sigma1 = fi.pole(1, delta);
+//            'sigma2 = fi.pole(1, sigma1);
+//            'sigma3 = fi.pole(1, sigma2);
+//            'sigma4 = fi.pole(1, sigma3);
+//            'sigma5 = fi.pole(1, sigma4);
+//            'Q = select2((  0.5761069262 * sigma1 + 
+//                            0.1624753515 * sigma2 + 
+//                            0.0276093301 * sigma3 + 
+//                            0.0028053934 * sigma4 +
+//                            0.0001360361 * sigma5) < 0, 1, -1);
+//       };
 
-// eca(L, R, I, rate[n]); ------------------------------------------------------
-//
-// One-dimension, two-state, elementary cellular automata with circular
-// lattice. The function is defined by the length of the lattice, a rule, and
-// an initial condition. Additionally, the function has a "rate" parameter
-// that determines the interval between iterations. The rule and the initial
-// condition are positive INTs that are converted into binary numbers and
-// accordingly zero-padded or limited to reach a binary string of
-// appropriate length.
-//
-// Ref:
-//    Wolfram, S. (1984). Cellular automata as models of complexity. Nature,
-//    311(5985), 419-424.
-//
-//    Wolfram, S. (2018). Cellular automata and complexity: collected papers.
-//    CRC Press.
-//
-// 1 inputs:
-//    rate[n], iteration rate.
-//
-// L outputs:
-//    y1[n];
-//    y2[n];
-//    ...;
-//    yL[n], states of the cells in the lattice.
-//
-// 3 compile-time arguments:
-//    L, (positive INT) size of the lattice (number of cells);
-//    R, (positive INT up to 255) rule applied to the 8 possible cases;
-//    I, (positive INT) initial condition for the cells.
-//
-// Sample-and-hold circuits are deployed to have arbitrary iteration
-// rates.
-eca(L, R, I, rate) =   (   si.bus(L) ,
-                           init(I) : ro.interleave(L, 2) : par(i, L, +) :
-      iterate : par(i, L, ba.sAndH(trigger)))
-                       ~ si.bus(L)
-      with {
-           // The trigger function needs further testing for extremely
-           // low iteration rates.
-           trigger = ba.period(ma.SR / max(ma.EPSILON, rate)) == 0;
-           // Integer wrap-around function assuming a range between 0 and any
-           // positive int value M.
-           wrap(M, N) = int(ma.frac(N / M) * M);
-           // "Wolfram Number" – an int between 0 and 255 representing
-           // all 256 possible outcomes for the eight cases (see below).
-           // Eight total cases and two possible outcomes for each case,
-           // hence 2^8 rules. Rule 30 and 110 are well-known.
-           w_num = zeropad_up(int(8 - ceil(ma.log2(R1))), dec2bin(R1))
-               with {
-                   R1 = min(255, R);
-               };
-           // Initial value for the cells, also expressed as an int. If
-           // the binary value of the init is larger than the lattice,
-           // the value is clipped. If smaller, 0s are added at the top
-           // until the binary string matches the lattice length.
-           init(N) = zeropad_up(int(L - ceil(ma.log2(N1))), dec2bin(N1)) :
-               par(i, L, _ <: _ - mem)
-               with {
-                   N1 = min(N, 2 ^ L - 1);
-               };
-           // Rule application through nested IFs. The rule changes the
-           // state of a cell according to the state of its neighbouring
-           // cells. Note that this is a circular latice, hence the
-           // state of the first cell is determined by the second one and
-           // the last one.
-           rule(x1, x2, x3) =
-      ba.if(   c1, w_num : route(8, 1, 1, 1),
-           ba.if(  c2, w_num : route(8, 1, 2, 1),
-               ba.if(  c3, w_num : route(8, 1, 3, 1),
-                   ba.if(  c4, w_num : route(8, 1, 4, 1),
-                       ba.if(  c5, w_num : route(8, 1, 5, 1),
-                           ba.if(  c6, w_num : route(8, 1, 6, 1),
-                               ba.if(  c7, w_num : route(8, 1, 7, 1),
-                                   w_num : route(8, 1, 8, 1))))))))
-               // Two states for three cells, hence 2^3 conditions.
-               // Note that the last one is implicit and not used in
-               // the IFs above, although it is informative having it
-               // here.
-               with {
-                   c1 = (x1 == 1) & (x2 == 1) & (x3 == 1);
-                   c2 = (x1 == 1) & (x2 == 1) & (x3 == 0);
-                   c3 = (x1 == 1) & (x2 == 0) & (x3 == 1);
-                   c4 = (x1 == 1) & (x2 == 0) & (x3 == 0);
-                   c5 = (x1 == 0) & (x2 == 1) & (x3 == 1);
-                   c6 = (x1 == 0) & (x2 == 1) & (x3 == 0);
-                   c7 = (x1 == 0) & (x2 == 0) & (x3 == 1);
-                   c8 = (x1 == 0) & (x2 == 0) & (x3 == 0);
-               };
-           iterate = si.bus(L) <:
-               par(i, L, route(L, 3,   wrap(L, i - 1) + 1, 1,
-                                       i + 1, 2,
-                                       wrap(L, i + 1) + 1, 3) : int(rule));
-      };
-// -----------------------------------------------------------------------------
 
-// zeropad_up(N, list); --------------------------------------------------------
-//
-// This function adds N zeros at the beginning of a list.
-//
-// 0 inputs.
-//
-// N+ba.count(list) outputs.
-//
-// 1 compile-time arguments:
-//    N, number of zeros to be added.
-//
-zeropad_up(0, x) = x;
-zeropad_up(N, x) = par(i, N, 0) , x;
-// -----------------------------------------------------------------------------
+////////////////////// utilities
 

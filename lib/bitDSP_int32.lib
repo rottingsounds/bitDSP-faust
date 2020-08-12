@@ -1,0 +1,463 @@
+declare name "bitDSP_int32";
+declare author "LFSaw (Till Bovermann), Dario Sanfilippo";
+declare copyright "MIT";
+
+// bit = library("bitDSP"); // main library
+// bit32 = library("bitDSP_int32"); // int32-based library
+// bitBus = library("bitDSP_bitBus"); // int32-based library
+bitConv = library("bitDSP_conversion"); // conversion between formats library
+
+// sc = library("scUGens.lib"); // part of https://github.com/tai-studio/faust-sc
+// lf = library("taiStudio.lib"); // part of https://github.com/tai-studio/faust-sc
+
+// import("stdfaust.lib");
+// only import what is necessary
+// 
+// an = library("analyzers.lib");
+ba = library("basics.lib");
+// co = library("compressors.lib");
+de = library("delays.lib");
+// dm = library("demos.lib");
+// dx = library("dx7.lib");
+// en = library("envelopes.lib");
+// fi = library("filters.lib");
+// ho = library("hoa.lib");
+// it = library("interpolators.lib");
+ma = library("maths.lib");
+// mi = library("mi.lib");
+// ef = library("misceffects.lib");
+// os = library("oscillators.lib");
+// no = library("noises.lib");
+// pf = library("phaflangers.lib");
+// pl = library("platform.lib");
+// pm = library("physmodels.lib");
+// rm = library("reducemaps.lib");
+// re = library("reverbs.lib");
+// ro = library("routes.lib");
+// sp = library("spats.lib");
+si = library("signals.lib");
+// so = library("soundfiles.lib");
+// sy = library("synths.lib");
+// ve = library("vaeffects.lib");
+// wa = library("webaudio.lib");
+// sf = library("all.lib");
+// vl = library("version.lib");
+
+
+
+///////////////////// generic bit operations ///////////////////////////////
+
+//---------------------------------`(bit32.)bitNot`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// bitwise Not
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// 16: bitNot
+// ```
+//-----------------------------------------------------------------------------
+bitNot = ffunction(int bit_not (int), "bitDSP.h", "");
+
+//---------------------------------`(bit32.)left_shift`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// unsigned left shift operator
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : left_shift(_)
+// ```
+//-----------------------------------------------------------------------------
+left_shift = ffunction(int bit_leftShift (int, int), "bitDSP.h", "");
+
+
+//---------------------------------`(bit32.)right_shift`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// unsigned right shift operator
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : right_shift(_)
+// ```
+//-----------------------------------------------------------------------------
+right_shift = ffunction(int bit_rightShift (int, int), "bitDSP.h", "");
+
+////////////////////////// bit operations on parts of the bits
+
+//---------------------------------`(bit32.)maskedNot`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// invert selected bits of an integer
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// maskedNot(mask, in)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+// maskedNot(mask, in) = (mask & bitNot(in)) | (bitNot(mask) & in);
+maskedNot(mask, in) = applyMask(bitNot(in), a, mask);
+
+
+//---------------------------------`(bit32.)maskedAnd`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// bit-wise AND of selected bits of two integers. remaining bits are kept from first parameter
+//
+// #### Usage
+//
+// ```
+// maskedAnd(mask, a, b)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+maskedAnd(mask, a, b) = applyMask(a&b, a, mask);
+
+
+//---------------------------------`(bit32.)maskedOr`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
+//
+// #### Usage
+//
+// ```
+// maskedOr(mask, a, b)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+maskedOr(mask, a, b) = applyMask(a|b, a, mask);
+
+
+//---------------------------------`(bit32.)maskedXor`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// bit-wise OR of selected bits of two integers. remaining bits are kept from first parameter
+//
+// #### Usage
+//
+// ```
+// maskedXor(mask, a, b)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+maskedXor(mask, a, b) = applyMask(xor(a,b), a, mask);
+
+
+//---------------------------------`(bit32.)applyMask`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// apply result only to selected bits 
+//
+// #### Usage
+//
+// ```
+// applyMask(res, org, mask)
+// ```
+// TODO: wait for bitNOT implementation
+//-----------------------------------------------------------------------------
+applyMask(res, org, mask) = (mask & res) | (bitNot(mask) & orig);
+
+
+////////////////////////// delays /////////////////////////////////////////////////////
+
+//---------------------------------`(bit32.)delay32`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// single-bit delay on an integer bitstream. maximum of 32bit delays possible.
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+// #### Usage
+//
+// ```
+// delay32(delta, _)
+// ```
+//-----------------------------------------------------------------------------
+delay32(0, x) = x;
+delay32(delta, x) = (right_shift(x, delta) | left_shift(x', (32-delta)));
+
+
+//---------------------------------`(bit32.)delay`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// single-bit delay on integer bitstream
+//
+// #### Usage
+//
+// ```
+// delay(delta, _)
+// ```
+//-----------------------------------------------------------------------------
+delay(delta, x) = delay32((delta % 32), x@( (delta, 32) : div ));
+
+
+//////////////////////////////// utilities //////////////////////////////
+
+//---------------------------------`(bit32.)bit_mask`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// create bit mask with indices at list values == 1
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// bit_mask(si.bus(N)) : _
+// ```
+//-----------------------------------------------------------------------------
+bit_mask((n, ns)) = bit_mask(ns) | left_shift(1, n);
+bit_mask(n) = left_shift(1, n);
+
+//---------------------------------`(bit32.)parity`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// compute parity of a 32bit integer (assuming it to be unsigned)
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+// #### Usage
+//
+// ```
+// _ : parity : _
+// ```
+//-----------------------------------------------------------------------------
+parity = ffunction(int parity (int), "bitDSP.h", "");
+
+//---------------------------------`(bit32.)div`---------------------------------------
+// integer division
+//
+// (author: Till Bovermann) 
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// 31, 32: div
+// div(31, 32)
+// ```
+//-----------------------------------------------------------------------------
+div = ffunction(int div_i (int, int), "bitDSP.h", "");
+
+////////////////////////// oscillators ////////////////////////
+
+//---------------------------------`(bit32.)lfsr`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// compute lfsr on a 32bit integer bitset (assuming it to be unsigned)
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : lfsr(mask) : _
+// ```
+// with
+// + `mask` — determining which bits to consider for the parity computation
+//-----------------------------------------------------------------------------
+lfsr(mask, in) = step(mask, in) ~ _ with {
+        step(mask, in, fbIn) = selector(in, fbIn) <: (parity(_ & mask), left_shift(_, 1)) : |;
+        selector(a, b) = select2(changed(a), b, a);
+        changed(x) = x != x';
+};
+
+
+//////////////////////// DACs ////////////////////////////////////////////
+
+//---------------------------------`(bit32.)bitDAC_i`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// select bits of an integer to be interpreted as PCM values
+// range is [0, 1, .. (2^size)[
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+// #### Usage
+//
+// ```
+// bitDAC_i(8, 2, _)
+// ```
+//-----------------------------------------------------------------------------
+bitDAC_i(size, offset, in) = right_shift((in & bitmask), offset) // shift selection to right-most bits
+with {
+	maxval = left_shift(1,size)-1; // maximum value that fits into size
+	bitmask = left_shift(maxval, offset); // mask selects area of which to create PCM values
+};
+
+
+//---------------------------------`(bit32.)bitDAC`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// select bits of an integer to be interpreted as PCM values
+// range is [0.f .. 1]
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+// #### Usage
+//
+// ```
+// bitDAC(8, 2, _)
+// ```
+// 
+// #### Example: 6-bit noise
+// 
+// ```
+// bitDAC(6, 0, int(no.noise * 10));
+// ```
+//-----------------------------------------------------------------------------
+bitDAC(offset, size, in) = normed(right_shift((in & bitmask), offset)) // shift selection to right-most bits
+with {
+  maxval = left_shift(1,size)-1; // maximum value that fits into size
+  bitmask = left_shift(maxval, offset); // mask selects area of which to create PCM values
+	normed(out) = out / (maxval-1); // normalise values to be between 0 and 1 (excl.)
+};
+
+
+//---------------------------------`(bit32.)dsm1_32`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// delta-sigma converter for a float-encoded multibit-stream. 
+// It turns the incoming signal into a binary stream packed into chuncks of a 32bit integer signal. 
+// 
+//
+// #### Usage
+//
+// ```
+// _ : dsm1_32 : _;
+// ```
+// with
+// + input a float signal in the range [-1, 1]
+// + output a binary stream split into chuncks of 32 values packed in 32bit integers, thus resulting in 32x oversampling.
+dsm1_32 = dsm1(32); // version fixed to 32bit output encoding
+// dsm1(N) = dsm1_ff_path(N) ~ si.bus(outputs(dsm1_one_step)-1) : par(i, outputs(dsm1_one_step)-1, !), _;
+dsm1(N) =  _, 0 : dsm1_ff_path(N) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _ 
+with {
+  // --------- dsm1_one_step
+  // compute one sample dsm1 and pass around state.
+  // x — input, 
+  // out_prev — (previous) output, 
+  // first params (s0, s1) are internal states
+  // in order for correct unfolding of operators, it is required to write n-dimensional 
+  // function as lambda-statement. 
+  // 
+  // single application with initial states == 0
+  // process = par(i, outputs(dsm1_one_step)-1, 0), _ : dsm1_one_step : par(i, outputs(dsm1_one_step)-1, !), _;
+  // (time-recursive) feedback application
+  // process = -1, 0 : dsm1_one_step ~ si.bus(outputs(dsm1_one_step)-2) : !, !, !, _;
+  dsm1_one_step = \(s0_prev, s1_prev, x, out_prev).(s0, s1, x, out 
+  with {
+      s0 = x - s1_prev + s0_prev;
+      s1 = s0 >=0 : select2(_, -1, 1); // bi-modal (for computation)
+      out = s1 > 0; // make uni-modal
+  });
+
+  // --------- oversample_snh
+  // oversample with sample and hold
+  // f needs to have a list as argument, with
+  // + first element being the output of the last evaluation, 
+  // + previous list items are (optional) intermediate states.
+  // + last list item is the input.
+  //
+  // process = 0.5 : \(x).(oversample_snh(3, dsm1_one_step, (0, 1, x, 3)));
+  // 
+  oversample_snh(1, func, x) = x : func;
+  oversample_snh(N, func, x) = oversample_snh(N-1, func, y(func, x)), y_out(func, x)
+  with {
+      y(func, x) = x : func;
+      // block everything but last value (i.e. output) 
+      y_out(func, x) = y(func, x) : par(i, outputs(func)-1, !), _; 
+  };
+
+  // --------- dsm1_ff_path
+  // feed-forward path of N calculations
+  // FIXME: allow arbitrary number `N` of intermediate fbck channels
+  // see [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
+  // 
+  // process = 0, 0, -0.4, 0 : dsm1_ff_path(1);
+  // process =  _, 0 : dsm1_ff_path(3) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _;
+  //
+  // dsm1_ff_path(N) = \(s0, s1, x, out_prev).(oversample_snh(N, dsm1_one_step, (s0, s1, x, out_prev))) : si.bus(numVars), bitConv.bitBus2int(N)
+  with {
+      numVars = outputs(dsm1_one_step)-1;
+  };
+};
+
+
+//////////////////////// debug /////////////////////////////////////////
+
+//---------------------------------`(bit32.)print`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// print an integer as a bit representation
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : print
+// ```
+//-----------------------------------------------------------------------------
+print = ffunction(int bit_print (int), "bitDSP.h", "");
+
+
+
+//---------------------------------`(bit32.)print2`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// print an integer as a bit representation, including two slots for (integer) counters. 
+// useful to output sample and channel count. 
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : print2(_, _)
+// ```
+//-----------------------------------------------------------------------------
+print2 = ffunction(int bit_print2counters (int, int, int), "bitDSP.h", "");

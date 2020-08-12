@@ -1,0 +1,124 @@
+declare name "bitDSP_conversion";
+declare author "LFSaw (Till Bovermann), Dario Sanfilippo";
+declare copyright "MIT";
+
+// bit = library("bitDSP"); // main library
+// bit32 = library("bitDSP_int32"); // int32-based library
+// bitBus = library("bitDSP_bitBus"); // int32-based library
+bitConv = library("bitDSP_conversion"); // conversion between formats library
+
+// sc = library("scUGens.lib"); // part of https://github.com/tai-studio/faust-sc
+// lf = library("taiStudio.lib"); // part of https://github.com/tai-studio/faust-sc
+
+// import("stdfaust.lib");
+// only import what is necessary
+// 
+// an = library("analyzers.lib");
+ba = library("basics.lib");
+// co = library("compressors.lib");
+de = library("delays.lib");
+// dm = library("demos.lib");
+// dx = library("dx7.lib");
+// en = library("envelopes.lib");
+// fi = library("filters.lib");
+// ho = library("hoa.lib");
+// it = library("interpolators.lib");
+ma = library("maths.lib");
+// mi = library("mi.lib");
+// ef = library("misceffects.lib");
+// os = library("oscillators.lib");
+// no = library("noises.lib");
+// pf = library("phaflangers.lib");
+// pl = library("platform.lib");
+// pm = library("physmodels.lib");
+// rm = library("reducemaps.lib");
+// re = library("reverbs.lib");
+// ro = library("routes.lib");
+// sp = library("spats.lib");
+si = library("signals.lib");
+// so = library("soundfiles.lib");
+// sy = library("synths.lib");
+// ve = library("vaeffects.lib");
+// wa = library("webaudio.lib");
+// sf = library("all.lib");
+// vl = library("version.lib");
+
+
+// dec2bitBus(N); -----------------------------------------------------------------
+//
+// (author: Dario Sanfilipo) 
+//
+// It converts a decimal integer (N) into a Faust list containing the binary
+// digits, that is, the binary digits in parallel.
+//
+// 0 inputs.
+//
+// M = ceil(ma.log2(N)) outputs:
+//    y1[n];
+//    y2[n];
+//    ...;
+//    yM[n], binary digits representing N.
+//
+// 1 compile-time arguments:
+//    N, decimal integer number.
+//
+dec2bitBus(0) = 0:!;
+dec2bitBus(N) =   dec2bitBus(int(N / 2)) ,
+               N % 2;
+// -----------------------------------------------------------------------------
+
+
+//---------------------------------`(bitConv.)bitBus2int`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// turn a stream of parallel binary values into an integer representation by 
+// left-shifting (<<) the values of the input busses. 
+// 
+// assumes values in parallel streams to be either int(0) or int(1)
+//
+// #### Usage
+//
+// ```
+// sine = sc.sine(1000, 0); // a float sine wave in [-1, 1]
+// process = int(sine * scale) : int2bitBus(32) <: si.bus(32), (bitBus2int(32) / scale) with {
+//     scale = 2147483647;
+// };
+// ```
+// 
+// ```
+// process = (1, 0, 0, 1, 1, 1) : bitBus2int(6);
+// ```
+bitBus2int(N) = si.bus(N) : sum(i, N, _ << i);
+// bitBusBus2int_custom — alternative implementation
+// TODO: fix `left_shift((x0, x1, x2, x3, x4, x5)` for fixed but arbitrary number of channels
+// see mail [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
+//
+// bitBusBus2int_custom(N) = si.bus(N) : \(x0, x1, x2, x3, x4, x5).(left_shift((x0, x1, x2, x3, x4, x5))) with {
+//     left_shift((x, xs)) = left_shift(xs) & ((x > 0) << 1) ;
+//     left_shift(x) = x > 0;
+// };
+// // process = (1, 0, 0, 1, 1, 1) : dsBus2int_custom(6);
+
+
+
+//---------------------------------`(bitConv.)int2bitBus`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// turn an integer signal into a stream of parallel binary values
+// left-shifting (<<) the values of the input busses. 
+// this interprets the input integer as a set of (32) binary values.
+// alternative implementation to `dec2bitBus`.
+// 
+// assumes values in parallel streams to be either int(0) or int(1)
+//
+// #### Usage
+//
+// ```
+// sine = sc.sine(1000, 0); // a float sine wave in [-1, 1]
+// process = int(sine * scale) : int2bitBus(32) <: si.bus(32), (bitBus2int(32) / scale) with {
+//     scale = 2147483647;
+// };
+// ```
+int2bitBus(N) = _ <: si.bus(N) : par(i, N, ((1 << i) & _) != 0);

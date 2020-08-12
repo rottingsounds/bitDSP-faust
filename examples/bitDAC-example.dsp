@@ -3,7 +3,7 @@ declare author "Till Bovermann";
 declare reference "http://rottingsounds.org";
 
 import("stdfaust.lib");
-b = library("bitDSP.lib");
+bit32 = library("bitDSP_int32.lib");
 
 // plot
 // CXXFLAGS="-I ../include" faust2csvplot -I ../lib bitDAC-example.dsp
@@ -23,4 +23,4 @@ sample_count = int((1:+~_)) - 1;
 
 // select bits of the samplecount and interpret that chunk as a PCM value
 
-process = b.bitDAC(numDigits, min(offset, 32-numDigits), sample_count) <: _,_;
+process = bit32.bitDAC(numDigits, min(offset, 32-numDigits), sample_count) <: _,_;
