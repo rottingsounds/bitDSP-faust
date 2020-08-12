@@ -222,6 +222,10 @@ delay(delta, x) = delay32((delta % 32), x@( (delta, 32) : div ));
 
 //////////////////////////////// utilities //////////////////////////////
 
+
+int_min = fconstant(int INT_MIN, <climits>);
+int_max = fconstant(int INT_MAX, <climits>);
+
 //---------------------------------`(bit32.)bit_mask`---------------------------------------
 //
 // (author: Till Bovermann) 
@@ -229,7 +233,6 @@ delay(delta, x) = delay32((delta % 32), x@( (delta, 32) : div ));
 // create bit mask with indices at list values == 1
 //
 // note: relies on foreign functions (c-based platforms only)
-//
 //
 // #### Usage
 //
@@ -275,12 +278,13 @@ div = ffunction(int div_i (int, int), "bitDSP.h", "");
 
 ////////////////////////// oscillators ////////////////////////
 
-//---------------------------------`(bit32.)lfsr`---------------------------------------
+//---------------------------------`(bit32.)lfsr32`---------------------------------------
 //
 // (author: Till Bovermann) 
 //
-// compute lfsr on a 32bit integer bitset (assuming it to be unsigned)
-//
+// compute lfsr on a 32bit integer bitset (assuming it to be unsigned).
+// see https://en.wikipedia.org/wiki/Linear-feedback_shift_register
+// 
 // note: relies on foreign functions (c-based platforms only)
 //
 //
@@ -292,11 +296,39 @@ div = ffunction(int div_i (int, int), "bitDSP.h", "");
 // with
 // + `mask` — determining which bits to consider for the parity computation
 //-----------------------------------------------------------------------------
-lfsr(mask, in) = step(mask, in) ~ _ with {
-        step(mask, in, fbIn) = selector(in, fbIn) <: (parity(_ & mask), left_shift(_, 1)) : |;
-        selector(a, b) = select2(changed(a), b, a);
-        changed(x) = x != x';
+lfsr32(mask, in) = step(mask, in) ~ _ with {
+    step(mask, in, fbIn) = selector(in, fbIn) <: (parity(_ & mask), left_shift(_, 1)) : |;
+    selector(a, b) = select2(changed(a), b, a);
+    changed(x) = x != x';
 };
+
+
+//---------------------------------`(bit32.)lfsr32`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// compute lfsr on an n-bit integer bitset (assuming it to be unsigned).
+// see https://en.wikipedia.org/wiki/Linear-feedback_shift_register
+// 
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : lfsr(n, mask) : _
+// ```
+// with
+// + `n` — number of bits the LFSR is operating on
+// + `mask` — determining which bits to consider for the parity computation
+//-----------------------------------------------------------------------------
+lfsr(n, mask, in) = step(n, mask, in) ~ _ with {
+	masked_out(n, val) = right_shift(-1, 32-n) & val;
+    step(n, mask, in, fbIn) = selector(in, fbIn) <: (parity(_ & mask), masked_out(n, left_shift(_, 1))) : |;
+    selector(a, b) = select2(changed(a), b, a);
+    changed(x) = x != x';
+};
+
 
 
 //////////////////////// DACs ////////////////////////////////////////////

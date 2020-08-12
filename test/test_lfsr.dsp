@@ -3,7 +3,7 @@ declare author "Till Bovermann";
 declare reference "http://rottingsounds.org";
 
 import("stdfaust.lib");
-b = library("bitDSP.lib");
+bit32 = library("bitDSP_int32.lib");
 
 // plot
 // CXXFLAGS="-I ../include" faust2csvplot -I ../lib lfsr.dsp
@@ -16,7 +16,7 @@ b = library("bitDSP.lib");
 
 s_count = (1:+~_) - 1;
 
-// a = (4:b.left_shift(1)) | (6:b.left_shift(1)) | (31:b.left_shift(1));
-a = 1: b.lfsr(b.bit_mask((3, 6, 31)));
+// a = (4:b.left_shift(1)) | (6:bit32.left_shift(1)) | (31:bit32.left_shift(1));
+a = 1: bit32.lfsr32(b.bit_mask((3, 6, 31)));
 
-process  = a : b.print2(0, s_count);
+process  = a : bit32.print2(0, s_count);

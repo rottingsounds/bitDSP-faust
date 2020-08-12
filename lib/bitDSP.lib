@@ -44,8 +44,6 @@ si = library("signals.lib");
 // vl = library("version.lib");
 
 
-int_min = fconstant(int INT_MIN, <climits>);
-int_max = fconstant(int INT_MAX, <climits>);
 
 
 /////////////////////////// oscillators
