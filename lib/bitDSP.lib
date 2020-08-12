@@ -14,6 +14,9 @@ int_max = fconstant(int INT_MAX, <climits>);
 //---------------------------------`(b.)bitNot`---------------------------------------
 // bitwise Not
 //
+// note: relies on foreign functions (c-based platforms only)
+//
+//
 // #### Usage
 //
 // ```
@@ -25,6 +28,9 @@ bitNot = ffunction(int bit_not (int), "bitDSP.h", "");
 
 //---------------------------------`(b.)div`---------------------------------------
 // integer division
+//
+// note: relies on foreign functions (c-based platforms only)
+//
 //
 // #### Usage
 //
@@ -65,10 +71,13 @@ delay(delta, x) = delay32((delta % 32), x@( (delta, 32) : div ));
 //---------------------------------`(b.)print`---------------------------------------
 // print an integer as a bit representation
 //
+// note: relies on foreign functions (c-based platforms only)
+//
+//
 // #### Usage
 //
 // ```
-// print(_)
+// _ : print
 // ```
 //-----------------------------------------------------------------------------
 print = ffunction(int bit_print (int), "bitDSP.h", "");
@@ -79,13 +88,97 @@ print = ffunction(int bit_print (int), "bitDSP.h", "");
 // print an integer as a bit representation, including two slots for (integer) counters. 
 // useful to output sample and channel count. 
 //
+// note: relies on foreign functions (c-based platforms only)
+//
+//
 // #### Usage
 //
 // ```
-// print(_)
+// _ : print2(_, _)
 // ```
 //-----------------------------------------------------------------------------
 print2 = ffunction(int bit_print2counters (int, int, int), "bitDSP.h", "");
+
+//---------------------------------`(b.)left_shift`---------------------------------------
+// unsigned left shift operator
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : left_shift(_)
+// ```
+//-----------------------------------------------------------------------------
+left_shift = ffunction(int bit_leftShift (int, int), "bitDSP.h", "");
+
+
+//---------------------------------`(b.)right_shift`---------------------------------------
+// unsigned right shift operator
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : right_shift(_)
+// ```
+//-----------------------------------------------------------------------------
+right_shift = ffunction(int bit_rightShift (int, int), "bitDSP.h", "");
+
+
+//---------------------------------`(b.)bit_mask`---------------------------------------
+// create bit mask with indices at list values == 1
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// bit_mask(si.bus(N)) : _
+// ```
+//-----------------------------------------------------------------------------
+bit_mask((n, ns)) = bit_mask(ns) | left_shift(1, n);
+bit_mask(n) = left_shift(1, n);
+
+
+//---------------------------------`(b.)parity`---------------------------------------
+// compute parity of a 32bit integer (assuming it to be unsigned)
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+// #### Usage
+//
+// ```
+// _ : parity : _
+// ```
+//-----------------------------------------------------------------------------
+parity = ffunction(int parity (int), "bitDSP.h", "");
+
+
+
+//---------------------------------`(b.)lfsr`---------------------------------------
+// compute lfsr on a 32bit integer bitset (assuming it to be unsigned)
+//
+// note: relies on foreign functions (c-based platforms only)
+//
+//
+// #### Usage
+//
+// ```
+// _ : lfsr(mask) : _
+// ```
+// with
+// + `mask` — determining which bits to consider for the parity computation
+//-----------------------------------------------------------------------------
+lfsr(mask, in) = step(mask, in) ~ _ with {
+        step(mask, in, fbIn) = selector(in, fbIn) <: (parity(_ & mask), left_shift(_, 1)) : |;
+        selector(a, b) = select2(changed(a), b, a);
+        changed(x) = x != x';
+};
 
 
 
@@ -108,22 +201,26 @@ int2binary(N) = int2binary(div(N,2)) , N % 2;
 // select bits of an integer to be interpreted as PCM values
 // range is [0, 1, .. (2^size)[
 //
+// note: relies on foreign functions (c-based platforms only)
+//
 // #### Usage
 //
 // ```
 // bitDAC_i(8, 2, _)
 // ```
 //-----------------------------------------------------------------------------
-bitDAC_i(size, offset, in) = (in & bitmask) >> offset // shift selection to right-most bits
+bitDAC_i(size, offset, in) = right_shift((in & bitmask), offset) // shift selection to right-most bits
 with {
-	maxval = (1 << size)-1; // maximum value that fits into size
-	bitmask = maxval << offset; // mask selects area of which to create PCM values
+	maxval = left_shift(1,size)-1; // maximum value that fits into size
+	bitmask = left_shift(maxval, offset); // mask selects area of which to create PCM values
 };
 
 
 //---------------------------------`(b.)bitDAC`---------------------------------------
 // select bits of an integer to be interpreted as PCM values
 // range is [0.f .. 1]
+//
+// note: relies on foreign functions (c-based platforms only)
 //
 // #### Usage
 //
@@ -137,10 +234,10 @@ with {
 // bitDAC(6, 0, int(no.noise * 10));
 // ```
 //-----------------------------------------------------------------------------
-bitDAC(offset, size, in) = normed((in & bitmask) >> offset) // shift selection to right-most bits
+bitDAC(offset, size, in) = normed(right_shift((in & bitmask), offset)) // shift selection to right-most bits
 with {
-	maxval = (1 << size)-1; // maximum value that fits into size
-	bitmask = maxval << offset; // mask selects area in which to create PCM values
+  maxval = left_shift(1,size)-1; // maximum value that fits into size
+  bitmask = left_shift(maxval, offset); // mask selects area of which to create PCM values
 	normed(out) = out / (maxval-1); // normalise values to be between 0 and 1 (excl.)
 };
 
@@ -149,6 +246,9 @@ with {
 
 //---------------------------------`(b.)maskedNot`---------------------------------------
 // invert selected bits of an integer
+//
+// note: relies on foreign functions (c-based platforms only)
+//
 //
 // #### Usage
 //

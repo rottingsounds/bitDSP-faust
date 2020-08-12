@@ -38,4 +38,27 @@ int bit_print2counters(int counter1, int counter2, int in) {
 	    return in;
 }
 
+int bit_leftShift(int a, int b) {
+	return (int) ((uint32_t) a << (uint32_t) b);
+}
+
+int bit_rightShift(int a, int b) {
+	return (int) ((uint32_t) a >> (uint32_t) b);
+}
+
+
+int parity (int in) {
+    // find parity of 32bit uint, 
+    // adapted from https://graphics.stanford.edu/~seander/bithacks.html#ParityParallel
+
+	uint32_t ui_op = (uint32_t) in;
+	ui_op ^= ui_op >> 16;
+	ui_op ^= ui_op >> 8;
+	ui_op ^= ui_op >> 4;
+	ui_op &= 0xf;
+	return (int) ((0x6996 >> ui_op) & 1);
+}
+
+
+
 #endif
