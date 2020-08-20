@@ -136,7 +136,7 @@ delta(s, t, in) =  in - de.fdelay(size * ma.SR, del * ma.SR, in);
 dsm2(x) =  loop
            ~ _
       with {
-           loop(fb) = x - fb : fi.pole(1) - fb : fi.pole(1) : Q;
+           loop(fb) = x - fb : fi.pole(1) - 2 * fb : fi.pole(1) : Q;
            Q(z) = select2(z < 0, 1, -1);
       };
 // -----------------------------------------------------------------------------
