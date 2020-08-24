@@ -3,7 +3,7 @@ declare author "Dario Sanfilippo";
 declare reference "http://rottingsounds.org";
 
 import("stdfaust.lib");
-bit32 = library("bitDSP.lib");
+bit = library("bitDSP.lib");
 
 // plot
 // CXXFLAGS="-I ../include" faust2csvplot -double -I ../lib dsm2-example.dsp
@@ -18,7 +18,7 @@ sine(f) = sin(os.phasor(2 * ma.PI, f));
 
 // Bipolar multi-bit signal to bipolar one-bit signal
 // Standard test with a 1 kHz tone
-onebitstream = bit32.dsm2(sine(1000));
+onebitstream = bit.dsm2(sine(1000));
 
 // Bipolar one-bit signal to bipolar multi-bit signal
 // The process of low-passing corresponds to averaging
