@@ -247,6 +247,26 @@ full_adder(x1, x2, c_in) = s_out ,
       };
 // -----------------------------------------------------------------------------
 
+// bitstream_adder(x1[n], x2[n]); ----------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// Adder for delta-sigma-modulated streams.
+//
+// 2 inputs:
+//    x1[n], first bitstream;
+//    x2[n], second bitstream.
+//
+// 1 outputs:
+//    y[n], resulting bitstream summation.
+//
+bitstream_adder(x1, x2) =  loop
+                           ~ _ : ( ! , 
+                                   _)
+      with {
+           loop(fb) = full_adder(x1, x2, fb);
+      };
+// -----------------------------------------------------------------------------
 
 ////////////////////// utilities
 
