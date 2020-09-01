@@ -182,7 +182,6 @@ cic(N, cf, x) = x : seq(i, N, delta(1, .5 / cf) :
 delta(s, t, in) =  in - de.fdelay(size * ma.SR, del * ma.SR, in);
 // -----------------------------------------------------------------------------
 
-
 // dsm1(x[n]); -----------------------------------------------------------------
 //
 // (author: Till Bovermann) 
@@ -223,6 +222,31 @@ dsm2(x) =  loop
            Q(z) = select2(z < 0, 1, -1);
       };
 // -----------------------------------------------------------------------------
+
+// full_adder(x1[n], x2[n], c_in[n]); ------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// Adder for binary values. It adds two operands as well as a carrier
+// input. It outputs the sum as well as the carrier output.
+//
+// 3 inputs:
+//    x1[n], first operand;
+//    x2[n], second operand;
+//    c_in[n], carrier input.
+//
+// 2 outputs:
+//    s_out[n], resulting sum;
+//    c_out[n], carrier output.
+//
+full_adder(x1, x2, c_in) = s_out , 
+                           c_out
+      with {
+           s_out = xor(c_in, xor(x1, x2));
+           c_out = (c_in & xor(x1, x2)) | (x1 & x2);
+      };
+// -----------------------------------------------------------------------------
+
 
 ////////////////////// utilities
 
