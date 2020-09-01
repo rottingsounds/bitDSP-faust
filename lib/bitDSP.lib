@@ -121,6 +121,28 @@ cic(N, cf, x) = x : seq(i, N, delta(1, .5 / cf) :
 delta(s, t, in) =  in - de.fdelay(size * ma.SR, del * ma.SR, in);
 // -----------------------------------------------------------------------------
 
+
+// dsm1(x[n]); -----------------------------------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// First-order digital delta-sigma modulator.
+//
+// 1 inputs:
+//    x[n];
+//
+// 1 outputs:
+//    y[n], modulated input in the range [-1; 1].
+//
+dsm1(x) = loop
+         ~ _
+      with {
+        loop(fb) = x - fb : posFB > 0 : select2(_, -1, 1);
+        posFB(fb) = (_, fb : +) ~ _;
+      };
+// -----------------------------------------------------------------------------
+
+
 // dsm2(x[n]); -----------------------------------------------------------------
 //
 // (author: Dario Sanfilippo) 
