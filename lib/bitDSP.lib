@@ -61,8 +61,8 @@ si = library("signals.lib");
 // specification.
 //
 // 2 inputs:
-//    del1[n], delay of the output of the first node (1 sec max);
-//    del2[n], delay of the output of the second node (1 sec max);
+//    del1[n], delay of the output of the first node up to SR samples;
+//    del2[n], delay of the output of the second node up to SR samples;
 //
 // 2 outputs:
 //    y1[n], first node;
