@@ -242,8 +242,9 @@ dsm2(x) =  loop
 full_adder(x1, x2, c_in) = s_out , 
                            c_out
       with {
-           s_out = xor(c_in, xor(x1, x2));
-           c_out = (c_in & xor(x1, x2)) | (x1 & x2);
+           s_out = xor(rint(c_in), xor(rint(x1), rint(x2)));
+           c_out = (rint(c_in) & xor(rint(x1), rint(x2))) | 
+      (rint(x1) & rint(x2));
       };
 // -----------------------------------------------------------------------------
 
