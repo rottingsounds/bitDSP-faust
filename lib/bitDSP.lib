@@ -262,8 +262,8 @@ full_adder(x1, x2, c_in) = s_out ,
 //    y[n], resulting bitstream summation.
 //
 bitstream_adder(x1, x2) =  loop
-                           ~ _ : ( ! , 
-                                   _)
+                           ~ _ :   ! , 
+                                   _
       with {
            loop(fb) = full_adder(x1, x2, fb);
       };
