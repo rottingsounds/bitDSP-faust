@@ -101,8 +101,8 @@ eca(L, R, I, rate) =   (   si.bus(L) ,
            // the binary value of the init is larger than the lattice,
            // the value is clipped. If smaller, 0s are added at the top
            // until the binary string matches the lattice length.
-           init(N) = zeropad_up(int(L - ceil(ma.log2(N1))), bitConv.dec2bitBus(N1)) :
-               par(i, L, _ <: _ - mem)
+           init(N) = zeropad_up(int(L - (floor(ma.log2(N1)) + 1)), 
+               bitConv.dec2bitBus(N1)) : par(i, L, _ <: _ - mem)
                with {
                    N1 = min(N, 2 ^ L - 1);
                };
