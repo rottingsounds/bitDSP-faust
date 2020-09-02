@@ -303,7 +303,7 @@ lfsr32(mask, in) = step(mask, in) ~ _ with {
 };
 
 
-//---------------------------------`(bit32.)lfsr32`---------------------------------------
+//---------------------------------`(bit32.)lfsr`---------------------------------------
 //
 // (author: Till Bovermann) 
 //
@@ -448,7 +448,7 @@ with {
   // process = 0, 0, -0.4, 0 : dsm1_ff_path(1);
   // process =  _, 0 : dsm1_ff_path(3) ~ si.bus(outputs(dsm1_one_step)-2) : par(i, outputs(dsm1_one_step)-1, !), _;
   //
-  dsm1_ff_path(N) = \(s0, s1, x, out_prev).(oversample_snh(N, dsm1_one_step, (s0, s1, x, out_prev))) : si.bus(numVars), bitConv.bitBus2int(N)
+  dsm1_ff_path(N) = \(s0, s1, x, out_prev).(oversample_snh(N, dsm1_one_step, (s0, s1, x, out_prev))) : si.bus(numVars), bitConv.bitBus_to_int(N)
   with {
       numVars = outputs(dsm1_one_step)-1;
   };

@@ -2,10 +2,10 @@ declare name "bitDSP";
 declare author "LFSaw (Till Bovermann), Dario Sanfilippo";
 declare copyright "MIT";
 
-// bin = library("bitDSP"); // main library
-// bin32 = library("bitDSP_int32"); // int32-based library
-// binBus = library("bitDSP_binBus"); // int32-based library
-// binConv = library("bitDSP_conversion"); // conversion between formats library
+// bit = library("bitDSP"); // main library
+// bit32 = library("bitDSP_int32"); // int32-based library
+// bitBus = library("bitDSP_binBus"); // int32-based library
+// bitConv = library("bitDSP_conversion"); // conversion between formats library
 
 // sc = library("scUGens.lib"); // part of https://github.com/tai-studio/faust-sc
 // lf = library("taiStudio.lib"); // part of https://github.com/tai-studio/faust-sc
@@ -268,6 +268,39 @@ bitstream_adder(x1, x2) =  loop
            loop(fb) = full_adder(x1, x2, fb);
       };
 // -----------------------------------------------------------------------------
+
+
+//---------------------------------`(bit.)bitrot`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// bitrot
+//
+// under a specified likelihood (noise, chance) and depending on type, either 
+// + `type == -1` -- set a bit's value to low 
+// + `type == 0` -- flip bit
+// + `type == 1` -- set a bit's value to high
+//
+// #### Usage
+//
+// ```
+// _ : bitrot(noise, chance, type) : _
+// ```
+// with
+// + `input` -- a unimodal bitstream
+// + `noise` -- unimodal noise source between [0, 1[
+// + `chance` -- parameter between 0 and 1
+// + `type` -- see above
+//-----------------------------------------------------------------------------
+bitrot(noise, chance, type) = _ <: select3(type-1, low(noise, chance, _), flip(noise, chance, _), high(noise, chance, _)) with {
+    low(noise, chance, x) = select2(coin(noise, chance), x, 0);
+    high(noise, chance, x) = select2(coin(noise, chance), x, 1);
+    flip(noise, chance, x) = select2(coin(noise, chance), x, 1-x);
+    coin(noise, chance) = noise < chance;
+};
+
+
+
 
 ////////////////////// utilities
 

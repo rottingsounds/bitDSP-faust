@@ -68,7 +68,7 @@ dec2bitBus(N) =   dec2bitBus(int(N / 2)) ,
 // -----------------------------------------------------------------------------
 
 
-//---------------------------------`(bitConv.)bitBus2int`---------------------------------------
+//---------------------------------`(bitConv.)bitBus_to_int`---------------------------------------
 //
 // (author: Till Bovermann) 
 //
@@ -81,15 +81,16 @@ dec2bitBus(N) =   dec2bitBus(int(N / 2)) ,
 //
 // ```
 // sine = sc.sine(1000, 0); // a float sine wave in [-1, 1]
-// process = int(sine * scale) : int2bitBus(32) <: si.bus(32), (bitBus2int(32) / scale) with {
+// process = int(sine * scale) : int32_to_bitBus(32) <: si.bus(32), (bitBus_to_int(32) / scale) with {
 //     scale = 2147483647;
 // };
 // ```
 // 
 // ```
-// process = (1, 0, 0, 1, 1, 1) : bitBus2int(6);
+// process = (1, 0, 0, 1, 1, 1) : bitBus_to_int(6);
 // ```
-bitBus2int(N) = si.bus(N) : sum(i, N, _ << i);
+bitBus_to_int32 = bitBus_to_int(32);
+bitBus_to_int(N) = si.bus(N) : sum(i, N, _ << i);
 // bitBusBus2int_custom — alternative implementation
 // TODO: fix `left_shift((x0, x1, x2, x3, x4, x5)` for fixed but arbitrary number of channels
 // see mail [\[Faudiostream-users\] arbitrary channels to recursive definition?](hook://email/C187E198-7DCB-496D-80CB-39C94EC6F1F6%40lfsaw.de)
@@ -101,8 +102,24 @@ bitBus2int(N) = si.bus(N) : sum(i, N, _ << i);
 // // process = (1, 0, 0, 1, 1, 1) : dsBus2int_custom(6);
 
 
+//---------------------------------`(bitConv.)int32_to_bitBus`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// turn a 1bit signal into a stream of parallel binary values
+// 
+// assumes values in inout stream to be either 
+//    int(0), int(-1) (low), or
+//    int(1), (high)
+bit_to_int32(0)  = 0; // unimodal
+bit_to_int32(-1) = 0; // bimodal
+// -1 is encoded by all 32 bits 
+//    in high state 
+bit_to_int32(1) = -1; 
 
-//---------------------------------`(bitConv.)int2bitBus`---------------------------------------
+
+
+//---------------------------------`(bitConv.)int32_to_bitBus`---------------------------------------
 //
 // (author: Till Bovermann) 
 //
@@ -117,8 +134,8 @@ bitBus2int(N) = si.bus(N) : sum(i, N, _ << i);
 //
 // ```
 // sine = sc.sine(1000, 0); // a float sine wave in [-1, 1]
-// process = int(sine * scale) : int2bitBus(32) <: si.bus(32), (bitBus2int(32) / scale) with {
+// process = int(sine * scale) : int32_to_bitBus(32) <: si.bus(32), (bitBus_to_int(32) / scale) with {
 //     scale = 2147483647;
 // };
 // ```
-int2bitBus(N) = _ <: si.bus(N) : par(i, N, ((1 << i) & _) != 0);
+int32_to_bitBus(N) = _ <: si.bus(N) : par(i, N, ((1 << i) & _) != 0);
