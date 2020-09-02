@@ -5,7 +5,7 @@ declare copyright "MIT";
 // bit = library("bitDSP"); // main library
 // bit32 = library("bitDSP_int32"); // int32-based library
 // bitBus = library("bitDSP_bitBus"); // int32-based library
-bitConv = library("bitDSP_conversion"); // conversion between formats library
+bitConv = library("bitDSP_conversion.lib"); // conversion between formats library
 
 // sc = library("scUGens.lib"); // part of https://github.com/tai-studio/faust-sc
 // lf = library("taiStudio.lib"); // part of https://github.com/tai-studio/faust-sc
