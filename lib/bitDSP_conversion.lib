@@ -62,9 +62,9 @@ si = library("signals.lib");
 // 1 compile-time arguments:
 //    N, decimal integer number.
 //
-dec2bitBus(0) = 0:!;
-dec2bitBus(N) =   dec2bitBus(int(N / 2)) ,
-               N % 2;
+dec2bitBus(0) = 0 : !;
+dec2bitBus(N) =    dec2bitBus(int(N / 2)) ,
+                   N % 2;
 // -----------------------------------------------------------------------------
 
 

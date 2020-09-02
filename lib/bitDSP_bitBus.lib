@@ -93,7 +93,7 @@ eca(L, R, I, rate) =   (   si.bus(L) ,
            // all 256 possible outcomes for the eight cases (see below).
            // Eight total cases and two possible outcomes for each case,
            // hence 2^8 rules. Rule 30 and 110 are well-known.
-           w_num = zeropad_up(int(8 - ceil(ma.log2(R1))), bitConv.dec2bin(R1))
+           w_num = zeropad_up(int(8 - ceil(ma.log2(R1))), bitConv.dec2bitBus(R1))
                with {
                    R1 = min(255, R);
                };
@@ -101,7 +101,7 @@ eca(L, R, I, rate) =   (   si.bus(L) ,
            // the binary value of the init is larger than the lattice,
            // the value is clipped. If smaller, 0s are added at the top
            // until the binary string matches the lattice length.
-           init(N) = zeropad_up(int(L - ceil(ma.log2(N1))), bitConv.dec2bin(N1)) :
+           init(N) = zeropad_up(int(L - ceil(ma.log2(N1))), bitConv.dec2bitBus(N1)) :
                par(i, L, _ <: _ - mem)
                with {
                    N1 = min(N, 2 ^ L - 1);
