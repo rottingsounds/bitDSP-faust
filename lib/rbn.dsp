@@ -10,7 +10,7 @@ declare lcg_par license "GPL v3 license";
 // AUXILIARY FUNCTIONS
 
 // -----------------------------------------------------------------------------
-// linear congruential list generator
+// Linear congruential list generator
 //
 lcg_par(1, M, A, C, S) = (A * S + C) % M;
 lcg_par(N, M, A, C, S) =   (A * S + C) % M ,
@@ -41,10 +41,11 @@ matrix(r, c) = (si.bus(r), ro.interleave(c, r)) : ro.interleave(r, c + 1) :
       si.bus(c) : ro.interleave(c, 2) : par(i, c, *)) :> si.bus(c);
 // -----------------------------------------------------------------------------
 
-matrix(r, c) = (si.bus(r), ro.interleave(c, r)) : ro.interleave(r, c + 1) :
-      par(i, r, (_ <: si.bus(c)) ,
-      si.bus(c) : ro.interleave(c, 2) : par(i, c, *)) :> si.bus(c);
+// -----------------------------------------------------------------------------
+// Negation for single-digit binary values
+//.
 not(N) = int(1 - N);
+// -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // UPDATE FUNCTIONS
@@ -54,22 +55,22 @@ not(N) = int(1 - N);
 // on the inputs.
 // The 'frozen' update functions 1111 and 0000 are not considered.
 //
-uf(0) = &; //           0001
-uf(1) = |; //           0111
-uf(2) = xor; //         0110
-uf(3) = not(&); //      1110
-uf(4) = not(|); //      1000
-uf(5) = not(xor); //    1001
+uf(0) = &;                              // 0001
+uf(1) = |;                              // 0111
+uf(2) = xor;                            // 0110
+uf(3) = not(&);                         // 1110
+uf(4) = not(|);                         // 1000
+uf(5) = not(xor);                       // 1001
 uf(6) = _ , 
-        (_ : !); //     0011
+        (_ : !);                        // 0011
 uf(7) = (_ : !) ,
-        _; //           0101
-uf(8) = not(uf(6)); //  1100
-uf(9) = not(uf(7)); //  1010
-uf(10) = si.bus(2) <: uf(2) & uf(7); // 0100
-uf(11) = si.bus(2) <: uf(6) & uf(9); // 0010
-uf(12) = not(uf(10)); // 1011
-uf(13) = not(uf(11)); // 1101
+        _;                              // 0101
+uf(8) = not(uf(6));                     // 1100
+uf(9) = not(uf(7));                     // 1010
+uf(10) = si.bus(2) <: uf(2) & uf(7);    // 0100
+uf(11) = si.bus(2) <: uf(6) & uf(9);    // 0010
+uf(12) = not(uf(10));                   // 1011
+uf(13) = not(uf(11));                   // 1101
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
