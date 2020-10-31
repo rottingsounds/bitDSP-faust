@@ -46,9 +46,14 @@ matrix(r, c) = (si.bus(r), ro.interleave(c, r)) : ro.interleave(r, c + 1) :
       si.bus(c) : ro.interleave(c, 2) : par(i, c, *)) :> si.bus(c);
 not(N) = int(1 - N);
 
-// input cases for K = 2 are: 00 - 01 - 10 - 11.
-// update functions
-
+// -----------------------------------------------------------------------------
+// UPDATE FUNCTIONS
+// The input cases for K = 2 (i.e., two-input genes) are: 00 - 01 - 10 - 11.
+// Four input cases and binary updates, hence 2^4 update functions.
+// The update functions below determine the next state of each gene depending 
+// on the inputs.
+// The 'frozen' update functions 1111 and 0000 are not considered.
+//
 uf(0) = &; //           0001
 uf(1) = |; //           0111
 uf(2) = xor; //         0110
@@ -61,18 +66,27 @@ uf(7) = (_ : !) ,
         _; //           0101
 uf(8) = not(uf(6)); //  1100
 uf(9) = not(uf(7)); //  1010
+uf(10) = si.bus(2) <: uf(2) & uf(7); // 0100
+uf(11) = si.bus(2) <: uf(6) & uf(9); // 0010
+uf(12) = not(uf(10)); // 1011
+uf(13) = not(uf(11)); // 1101
+// -----------------------------------------------------------------------------
 
-// 0001 & 0111 = 0001
-// 0001 & 0110 = 0000 *
-// 0001 & 1110 = 0000 *
-// 0001 & 1000 = 0000 *
-// 0001 & 1001 = 0001
-// 0111 & 0110 = 0110
+// -----------------------------------------------------------------------------
+// This function creates a list with the digits of an integer number.
+//
 digits_par(0) = 0 : !;
 digits_par(N) = digits_par(int(N / 10)) , 
                 N % 10;
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// This function converts from binary to decimal.
+//
 bin2dec(0) = 0;
 bin2dec(B) = digits_par(B) : par(i, elem, *(2 ^ (elem - (i + 1)))) :> _
     with {
         elem = outputs(digits_par(B));
     };
+// -----------------------------------------------------------------------------
+
