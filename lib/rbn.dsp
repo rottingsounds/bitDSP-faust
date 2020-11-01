@@ -138,6 +138,7 @@ bin2dec(B) = digits_par(B) : par(i, elem, *(2 ^ (elem - (i + 1)))) :> _
 // This function takes an int, N, indicating the array size, and a seed, S, for
 // an LCG function that generates N seeds for N LCG functions. 
 // The gene selection has a uniform probability distribution p = 1/14.
+// Roughly, the given seed should be a positive int below 2^16.
 //
 genes(N, S) = par(i, N, uf(lcg_par(1, 14, 15, 5, ba.take(i + 1, seeds) + 1)))
     with {
