@@ -141,5 +141,5 @@ bin2dec(B) = digits_par(B) : par(i, elem, *(2 ^ (elem - (i + 1)))) :> _
 //
 genes(N, S) = par(i, N, uf(lcg_par(1, 14, 15, 5, ba.take(i + 1, seeds) + 1)))
     with {
-        seeds = lcg_par(N, 251, 33, 0, S);
+        seeds = lcg_par(N, 65521, 17364, 0, S);
     };
