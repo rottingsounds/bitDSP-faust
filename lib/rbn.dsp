@@ -9,6 +9,48 @@ declare lcg_par license "GPL v3 license";
 
 // AUXILIARY FUNCTIONS
 
+//------------------------------------------------------------------------------
+// Linear congruential generator for streams of integer values based on
+// the equation: y[n] = (A * y[n - 1] + C) % M.
+// See https://en.wikipedia.org/wiki/Linear_congruential_generator.
+//
+// For a period-M LCG, with C != 0, we must satisfy the following conditions:
+//
+//      1: M and C are relatively prime,
+//      2: A-1 is divisible by all prime factors of M,
+//      3: A-1 is divisible by 4 if M is divisible by 4.
+//
+// This way, full-period cycles are guaranteed with any seeds != 0.
+//
+// For example, we can use lcg(14, 15, 5, S) to select the update functions
+// with uniform probability.
+//
+// #### Usage
+//
+// ````
+// lcg(M, A, C, S) : _
+// ````
+//
+// Where:
+//
+// * M is the divisor in the modulo operation.
+// * A is the multiplier.
+// * C is the offset.
+// * S is the seed.
+//
+// #### Reference:
+//
+// L’ecuyer, P. (1999). Tables of linear congruential generators of different
+// sizes and good lattice structure. Mathematics of Computation, 68(225),
+// 249-260.
+//
+// Steele, G., & Vigna, S. (2020). Computationally easy, spectrally good
+// multipliers for congruential pseudorandom number generators. arXiv
+// preprint arXiv:2001.05304.
+lcg(M, A, C, S) =  ((+ (S - S') * A + C) % M)
+                   ~ _;
+//------------------------------------------------------------------------------
+
 // -----------------------------------------------------------------------------
 // Linear congruential list generator
 //
@@ -42,8 +84,8 @@ matrix(r, c) = (si.bus(r), ro.interleave(c, r)) : ro.interleave(r, c + 1) :
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-// Negation for single-digit binary values
-//.
+// Negation for single-digit binary values.
+//
 not(N) = int(1 - N);
 // -----------------------------------------------------------------------------
 
@@ -91,3 +133,13 @@ bin2dec(B) = digits_par(B) : par(i, elem, *(2 ^ (elem - (i + 1)))) :> _
     };
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// Genes array generation through randomly chosen update functions.
+// This function takes an int, N, indicating the array size, and a seed, S, for
+// an LCG function that generates N seeds for N LCG functions. 
+// The gene selection has a uniform probability distribution p = 1/14.
+//
+genes(N, S) = par(i, N, uf(lcg_par(1, 14, 15, 5, ba.take(i + 1, seeds) + 1)))
+    with {
+        seeds = lcg_par(N, 251, 33, 0, S);
+    };
