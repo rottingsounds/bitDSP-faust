@@ -7,6 +7,8 @@ declare copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com>";
 declare lcg_par license "GPL v3 license";
 
+import("stdfaust.lib");
+
 // AUXILIARY FUNCTIONS
 
 //------------------------------------------------------------------------------
@@ -76,22 +78,22 @@ not(N) = int(1 - N);
 // on the inputs.
 // The 'frozen' update functions 1111 and 0000 are not considered.
 //
-uf(0) = &;                              // 0001
-uf(1) = |;                              // 0111
-uf(2) = xor;                            // 0110
-uf(3) = not(&);                         // 1110
-uf(4) = not(|);                         // 1000
-uf(5) = not(xor);                       // 1001
-uf(6) = _ , 
+uf(1) = &;                              // 0001
+uf(2) = si.bus(2) <: uf(6) & uf(9);     // 0010
+uf(3) = _ , 
         (_ : !);                        // 0011
-uf(7) = (_ : !) ,
+uf(4) = si.bus(2) <: uf(2) & uf(7);     // 0100
+uf(5) = (_ : !) ,
         _;                              // 0101
-uf(8) = not(uf(6));                     // 1100
-uf(9) = not(uf(7));                     // 1010
-uf(10) = si.bus(2) <: uf(2) & uf(7);    // 0100
-uf(11) = si.bus(2) <: uf(6) & uf(9);    // 0010
-uf(12) = not(uf(10));                   // 1011
+uf(6) = xor;                            // 0110
+uf(7) = |;                              // 0111
+uf(8) = not(|);                         // 1000
+uf(9) = not(xor);                       // 1001
+uf(10) = not(uf(7));                    // 1010
+uf(12) = not(uf(6));                    // 1100
+uf(11) = not(uf(10));                   // 1011
 uf(13) = not(uf(11));                   // 1101
+uf(14) = not(&);                        // 1110
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -119,7 +121,8 @@ bin2dec(B) = digits_par(B) : par(i, elem, *(2 ^ (elem - (i + 1)))) :> _
 // The gene selection has a uniform probability distribution p = 1/14.
 // Roughly, the given seed should be a positive int below 2^16.
 //
-genes(N, S) = par(i, N, uf(lcg_par(1, 14, 15, 5, ba.take(i + 1, seeds) + 1)))
+genes(N, S) = 
+    par(i, N, uf(lcg_par(1, 14, 15, 5, ba.take(i + 1, seeds) + 1) + 1))
     with {
         seeds = lcg_par(N, 65521, 17364, 0, S);
     };
@@ -131,7 +134,8 @@ genes(N, S) = par(i, N, uf(lcg_par(1, 14, 15, 5, ba.take(i + 1, seeds) + 1)))
 rand_int(M, S) = abs(random) % M
     with {
         mask = 4294967295; // 2^32-1
-        random =    (+(S) : *(1103515245) & mask) ~ _; // "linear congruential"
+        random =    (+(S) : *(1103515245) & mask) 
+                    ~ _; // "linear congruential"
     };
 // -----------------------------------------------------------------------------
 
