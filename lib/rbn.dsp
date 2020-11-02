@@ -25,6 +25,9 @@ declare lcg_par license "GPL v3 license";
 // For example, we can use lcg(14, 15, 5, S) to select the update functions
 // with uniform probability.
 //
+// For power-of-two Ms, C should be coprime to M and A should 1+4K, where K 
+// is an int, to have a full-cycle LCG.
+//
 // #### Usage
 //
 // ````
@@ -57,30 +60,6 @@ lcg(M, A, C, S) =  ((+ (S - S') * A + C) % M)
 lcg_par(1, M, A, C, S) = (A * S + C) % M;
 lcg_par(N, M, A, C, S) =   (A * S + C) % M ,
                            lcg_par(N - 1, M, A, C, (A * S + C) % M);
-// -----------------------------------------------------------------------------
-
-// m2.matrix(R, C); ------------------------------------------------------------
-//
-// R-input, C-output matrix:
-//
-// a11 a12 … a1C
-// a21 a22 … a2C
-//  ⋮   ⋮  ⋱  ⋮
-// aR1 aR2 … aRC
-// 
-// R+R*C inputs:
-//    R, input signals to be distributed through the C outputs;
-//    R*C, coefficients as shown in the diagram above;
-//
-// C outputs.
-//
-// 2 compile-time arguments:
-//    R, (integer) number of rows;
-//    C, (integer) number columns.
-//
-matrix(r, c) = (si.bus(r), ro.interleave(c, r)) : ro.interleave(r, c + 1) :
-      par(i, r, (_ <: si.bus(c)) , 
-      si.bus(c) : ro.interleave(c, 2) : par(i, c, *)) :> si.bus(c);
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -144,3 +123,42 @@ genes(N, S) = par(i, N, uf(lcg_par(1, 14, 15, 5, ba.take(i + 1, seeds) + 1)))
     with {
         seeds = lcg_par(N, 65521, 17364, 0, S);
     };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// This function generates uniformely distributed (or almost) positive random
+// ints between 0 and M-1. The function also takes a seed, S.
+rand_int(M, S) = abs(random) % M
+    with {
+        mask = 4294967295; // 2^32-1
+        random =    (+(S) : *(1103515245) & mask) ~ _; // "linear congruential"
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// This function creates a list of N elements with random ints between
+// 0 and M-1. The function also takes increment (C) and seed parameters (S).
+// The increment should be odd to increase uniformity.
+//
+rand_int_par(1, M, C, S) = 
+    (S + C) * 1103515245 & 4294967295 : abs : %(M);
+rand_int_par(N, M, C, S) = 
+    (S + C) * 1103515245 & 4294967295 : abs : %(M) ,
+    rand_int_par(N - 1, M, C, (S + C) * 1103515245 & 4294967295);
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Topology selection for genes interactions. This function takes an int, N,
+// representing the order of the network, and a seed, S, which in turn
+// generates two seeds for two LCG function to select the connections to each
+// gene.
+// The seed should be a positive int roughly below 2^16.
+//
+topology(N, S) =
+    si.bus(N) <: par(i, N, si.bus(N) <:
+        ba.selectn(N, lcg_par(1, 16, 5, 3, ba.take(i * 2 + 1, seeds))) ,
+        ba.selectn(N, lcg_par(1, 16, 5, 3, ba.take(i * 2 + 2, seeds))))
+    with {
+        seeds = lcg_par(N * 2, 65521, 17364, 0, S);
+    };
+// -----------------------------------------------------------------------------
