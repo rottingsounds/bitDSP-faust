@@ -162,3 +162,10 @@ topology(N, S) =
         seeds = lcg_par(N * 2, 65521, 17364, 0, S);
     };
 // -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Random Boolean networks generator. The function takes three ints, N, S_1,
+// and S_2, resepctively for the network order (pow-of-2), the seed for the 
+// genes array, and the seed for the topology type.
+rbn(N, S_1, S_2) = genes(N, S_1) ~ topology(N, S_2);
+// -----------------------------------------------------------------------------
