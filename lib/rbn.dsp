@@ -140,6 +140,31 @@ rand_int(M, S) = abs(random) % M
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+// This recursive function generates a gene with arbitrary K (inputs) based on
+// a seed between ~1-2^16.
+//
+gene(2, S) = uf(lcg_par(1, 14, 15, 5, ba.take(1, seeds) + 1) + 1)
+    with {
+        seeds = lcg_par(1, 65521, 17364, 0, S);
+    };
+gene(K, S) = 
+    uf(lcg_par(1, 14, 15, 5, ba.take(K - 1, seeds) + 1) + 1, gene(K - 1, S))
+    with {
+        seeds = lcg_par(K - 1, 65521, 17364, 0, S);
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// This function generates a genes array of size N with arbitrary K based on
+// a seed between ~0-2^16.
+//
+genes2(N, K, S) = par(i, N, gene(K, ba.take(i + 1, seeds)))
+    with {
+        seeds = lcg_par(N, 65521, 17364, 0, S);
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
 // This function creates a list of N elements with random ints between
 // 0 and M-1. The function also takes increment (C) and seed parameters (S).
 // The increment should be odd to increase uniformity.
