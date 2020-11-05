@@ -156,7 +156,7 @@ gene(K, S) =
 
 // -----------------------------------------------------------------------------
 // This function generates a genes array of size N with arbitrary K based on
-// a seed between ~0-2^16.
+// a seed between ~1-2^16.
 //
 genes2(N, K, S) = par(i, N, gene(K, ba.take(i + 1, seeds)))
     with {
@@ -183,12 +183,13 @@ rand_int_par(N, M, C, S) =
 // gene.
 // The seed should be a positive int roughly below 2^16.
 //
-topology(N, S) =
-    si.bus(N) <: par(i, N, si.bus(N) <:
-        ba.selectn(N, lcg_par(1, 16, 5, 3, ba.take(i * 2 + 1, seeds))) ,
-        ba.selectn(N, lcg_par(1, 16, 5, 3, ba.take(i * 2 + 2, seeds))))
+topology(N, K, S) =
+    si.bus(N) <: 
+        par(i, N, si.bus(N) <:
+            par(j, K, ba.selectn(N, lcg_par(1, 16, 5, 3, 
+                ba.take(i * K + j + 1, seeds)))))
     with {
-        seeds = lcg_par(N * 2, 65521, 17364, 0, S);
+        seeds = lcg_par(N * K, 65521, 17364, 0, S);
     };
 // -----------------------------------------------------------------------------
 
@@ -196,5 +197,5 @@ topology(N, S) =
 // Random Boolean networks generator. The function takes three ints, N, S_1,
 // and S_2, resepctively for the network order (pow-of-2), the seed for the 
 // genes array, and the seed for the topology type.
-rbn(N, S_1, S_2) = genes(N, S_1) ~ topology(N, S_2);
+rbn(N, K, S_1, S_2) = genes2(N, K, S_1) ~ topology(N, K, S_2);
 // -----------------------------------------------------------------------------
