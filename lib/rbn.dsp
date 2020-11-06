@@ -178,18 +178,19 @@ rand_int_par(N, M, C, S) =
 
 // -----------------------------------------------------------------------------
 // Topology selection for genes interactions. This function takes an int, N,
-// representing the order of the network, and a seed, S, which in turn
-// generates two seeds for two LCG function to select the connections to each
-// gene.
+// representing the order of the network, the inputs number in each gene, K, 
+// and a seed, S. N and K should be power-of-two and the function generates
+// homogeneous topologies, that is, genes interactions where individual
+// gene contributions are equally but randomly distributed throughout the 
+// network.
 // The seed should be a positive int roughly below 2^16.
 //
 topology(N, K, S) =
     si.bus(N) <: 
-        par(i, N, si.bus(N) <:
-            par(j, K, ba.selectn(N, lcg_par(1, 16, 5, 3, 
-                ba.take(i * K + j + 1, seeds)))))
+        par(i, N * K, si.bus(N) <:
+            ba.selector(ba.take(i + 1, routes), N * K))
     with {
-        seeds = lcg_par(N * K, 65521, 17364, 0, S);
+        routes = lcg_par(N * K, N * K, 5, 15, S);
     };
 // -----------------------------------------------------------------------------
 
