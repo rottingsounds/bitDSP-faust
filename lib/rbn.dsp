@@ -53,7 +53,7 @@ import("stdfaust.lib");
 // multipliers for congruential pseudorandom number generators. arXiv
 // preprint arXiv:2001.05304.
 //
-lcg(M, A, C, S) =  ((+ (S - S') * A + C) % M)
+lcg(M, A, C, S) =  ((+ (S - S') * A + C) % M);
 //------------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
