@@ -52,8 +52,8 @@ import("stdfaust.lib");
 // Steele, G., & Vigna, S. (2020). Computationally easy, spectrally good
 // multipliers for congruential pseudorandom number generators. arXiv
 // preprint arXiv:2001.05304.
+//
 lcg(M, A, C, S) =  ((+ (S - S') * A + C) % M)
-                   ~ _;
 //------------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -126,11 +126,13 @@ genes(N, S) =
     with {
         seeds = lcg_par(N, 65521, 17364, 0, S);
     };
+//
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // This function generates uniformely distributed (or almost) positive random
 // ints between 0 and M-1. The function also takes a seed, S.
+//
 rand_int(M, S) = abs(random) % M
     with {
         mask = 4294967295; // 2^32-1
@@ -141,24 +143,25 @@ rand_int(M, S) = abs(random) % M
 
 // -----------------------------------------------------------------------------
 // This recursive function generates a gene with arbitrary K (inputs) based on
-// a seed between ~1-2^16.
+// a seed between 1 and 2^16, roughly. The genes are generated as homogeneous
+// combinations of the 14 K=2 update functions defined above.
 //
-gene(2, S) = uf(lcg_par(1, 14, 15, 5, ba.take(1, seeds) + 1) + 1)
+gene(2, S) = uf(ba.take(1, org) + 1)
     with {
-        seeds = lcg_par(1, 65521, 17364, 0, S);
+        org = lcg_par(1, 14, 15, 5, S);
     };
 gene(K, S) = 
-    uf(lcg_par(1, 14, 15, 5, ba.take(K - 1, seeds) + 1) + 1, gene(K - 1, S))
+    uf(ba.take(K - 1, org) + 1, gene(K - 1, S))
     with {
-        seeds = lcg_par(K - 1, 65521, 17364, 0, S);
+        org = lcg_par(K - 1, 14, 15, 5, S);
     };
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // This function generates a genes array of size N with arbitrary K based on
-// a seed between ~1-2^16.
+// a seed between 1 and 2^16, roughly.
 //
-genes2(N, K, S) = par(i, N, gene(K, ba.take(i + 1, seeds)))
+genes2(N, K, S) = par(i, N, gene(K, ba.take(i + 1, seeds) + 1))
     with {
         seeds = lcg_par(N, 65521, 17364, 0, S);
     };
@@ -198,5 +201,13 @@ topology(N, K, S) =
 // Random Boolean networks generator. The function takes three ints, N, S_1,
 // and S_2, resepctively for the network order (pow-of-2), the seed for the 
 // genes array, and the seed for the topology type.
-rbn(N, K, S_1, S_2) = genes2(N, K, S_1) ~ topology(N, K, S_2);
+//
+rbn(N, K, S_1, S_2) =   genes2(N, K, S_1) 
+                        ~ topology(N, K, S_2);
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Process example.
+//
+process = rbn(8, 8, 23, 44);
 // -----------------------------------------------------------------------------
