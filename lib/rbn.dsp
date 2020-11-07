@@ -206,6 +206,61 @@ rbn(N, K, S_1, S_2) =   genes2(N, K, S_1)
                         ~ topology(N, K, S_2);
 // -----------------------------------------------------------------------------
 
+// full_adder(x1[n], x2[n], c_in[n]); ------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// Adder for binary values. It adds two operands as well as a carrier
+// input. It outputs the sum as well as the carrier output.
+//
+// 3 inputs:
+//    x1[n], first operand;
+//    x2[n], second operand;
+//    c_in[n], carrier input.
+//
+// 2 outputs:
+//    s_out[n], resulting sum;
+//    c_out[n], carrier output.
+//
+full_adder(x1, x2, c_in) = s_out ,
+                           c_out
+      with {
+           s_out = xor(rint(c_in), xor(rint(x1), rint(x2)));
+           c_out = (rint(c_in) & xor(rint(x1), rint(x2))) |
+                (rint(x1) & rint(x2));
+      };
+// -----------------------------------------------------------------------------
+
+// bitstream_adder(x1[n], x2[n]); ----------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// Adder for delta-sigma-modulated streams.
+//
+// 2 inputs:
+//    x1[n], first bitstream;
+//    x2[n], second bitstream.
+//
+// 1 outputs:
+//    y[n], resulting bitstream summation.
+//
+bitstream_adder(x1, x2) =  loop
+                           ~ _ :   ! ,
+                                   _
+      with {
+           loop(fb) = full_adder(x1, x2, fb);
+      };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Binary summing bus of N inputs.
+//
+bitstream_adderN(1) = _;
+bitstream_adderN(2) = bitstream_adder;
+bitstream_adderN(N) =   bitstream_adderN(N - 1) , 
+                        _ : bitstream_adder;
+// -----------------------------------------------------------------------------
+
 // -----------------------------------------------------------------------------
 // Process example.
 //
