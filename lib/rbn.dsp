@@ -197,11 +197,11 @@ topology(N, K, S) =
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-// Random Boolean networks generator. The function takes three ints, N, S_1,
-// and S_2, resepctively for the network order (pow-of-2), the seed for the 
-// genes array, and the seed for the topology type, and a list of numbers
-// determining the delays for each feedback path. The function also provides
-// a slider to expand or compress the delays.
+// Random Boolean networks generator. The function takes four ints, N, K, S_1,
+// and S_2, respectively for the network order (pow-of-2), genes inputs, 
+// the seed for the genes array, the seed for the topology type, and a list 
+// of numbers determining the delays in samples for each feedback path. The function also 
+// provides a slider to expand or compress the delays.
 //
 rbn(N, K, S_1, S_2, del_seq) =   
     genes2(N, K, S_1) 
@@ -267,7 +267,7 @@ bitstream_adderN(N) =   bitstream_adderN(N - 1) ,
 // N-delay array.
 //
 delays(N, sequence) = 
-    par(i, N, de.fdelay(192000, ba.take(i + 1, sequence) * factor))
+    par(i, N, rint(de.fdelay(192000, ba.take(i + 1, sequence) * factor)))
     with {
         factor = 16 ^ hslider("delays stretching", 0, -1, 1, .001);
     };
