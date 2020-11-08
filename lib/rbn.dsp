@@ -265,7 +265,7 @@ bitstream_adderN(N) =   bitstream_adderN(N - 1) ,
 // N-delay array.
 //
 delays(N, sequence) = 
-    par(i, N, de.fdelay(192000, ba.take(i + 1, squence) * factor))
+    par(i, N, de.fdelay(192000, ba.take(i + 1, sequence) * factor))
     with {
         factor = 16 ^ hslider("delays stretching", 0, -1, 1, .001);
     };
