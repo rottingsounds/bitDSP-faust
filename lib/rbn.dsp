@@ -299,7 +299,16 @@ seq_triangular =
 // Process example.
 //
 N = 16;
-K = 8;
+K = 16;
 process = 
-    rbn(N, K, 231, 415, seq_fibonacci) : par(i, 2, bitstream_adderN(N / 2));
+    rbn(N, K, 316, 153, seq_hexagonal) : par(i, 2, bitstream_adderN(N / 2));
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Process example.
+//
+// N = 16; // genes array size
+// K = 8; // genes input size
+// process =
+//     rbn(N, K, 231, 415, seq_fibonacci) : par(i, 2, bitstream_adderN(N / 2));
 // -----------------------------------------------------------------------------
