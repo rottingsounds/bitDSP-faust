@@ -16,7 +16,7 @@ import("stdfaust.lib");
 // the equation: y[n] = (A * y[n - 1] + C) % M.
 // See https://en.wikipedia.org/wiki/Linear_congruential_generator.
 //
-// For a period-M LCG, with C != 0, we must satisfy the following conditions:
+// For a period-(M-1) LCG, with C != 0, we must satisfy the following conditions:
 //
 //      1: M and C are relatively prime,
 //      2: A-1 is divisible by all prime factors of M,
@@ -119,14 +119,13 @@ bin2dec(B) = digits_par(B) : par(i, elem, *(2 ^ (elem - (i + 1)))) :> _
 // This function takes an int, N, indicating the array size, and a seed, S, for
 // an LCG function that generates N seeds for N LCG functions. 
 // The gene selection has a uniform probability distribution p = 1/14.
-// Roughly, the given seed should be a positive int below 2^16.
+// Roughly, the given seed should be a positive int between 1 and 2^16.
 //
 genes(N, S) = 
     par(i, N, uf(lcg_par(1, 14, 15, 5, ba.take(i + 1, seeds) + 1) + 1))
     with {
         seeds = lcg_par(N, 65521, 17364, 0, S);
     };
-//
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -182,10 +181,10 @@ rand_int_par(N, M, C, S) =
 // -----------------------------------------------------------------------------
 // Topology selection for genes interactions. This function takes an int, N,
 // representing the order of the network, the inputs number in each gene, K, 
-// and a seed, S. N and K should be power-of-two and the function generates
-// homogeneous topologies, that is, genes interactions where individual
-// gene contributions are equally but randomly distributed throughout the 
-// network.
+// and a seed, S. The function generates homogeneous topologies, that is, 
+// genes interactions where individual gene contributions are equally but 
+// randomly distributed throughout the network. N and K should be pow-of-2
+// for maximum homogeneity.
 // The seed should be a positive int roughly below 2^16.
 //
 topology(N, K, S) =
@@ -200,7 +199,9 @@ topology(N, K, S) =
 // -----------------------------------------------------------------------------
 // Random Boolean networks generator. The function takes three ints, N, S_1,
 // and S_2, resepctively for the network order (pow-of-2), the seed for the 
-// genes array, and the seed for the topology type.
+// genes array, and the seed for the topology type, and a list of numbers
+// determining the delays for each feedback path. The function also provides
+// a slider to expand or compress the delays.
 //
 rbn(N, K, S_1, S_2, del_seq) =   
     genes2(N, K, S_1) 
@@ -297,5 +298,8 @@ seq_triangular =
 // -----------------------------------------------------------------------------
 // Process example.
 //
-process = rbn(8, 8, 23, 44, seq_fibonacci);
+N = 16;
+K = 8;
+process = 
+    rbn(N, K, 231, 415, seq_fibonacci) : par(i, 2, bitstream_adderN(N / 2));
 // -----------------------------------------------------------------------------
