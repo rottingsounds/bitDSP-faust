@@ -202,8 +202,9 @@ topology(N, K, S) =
 // and S_2, resepctively for the network order (pow-of-2), the seed for the 
 // genes array, and the seed for the topology type.
 //
-rbn(N, K, S_1, S_2, del_seq) =   genes2(N, K, S_1) 
-                        ~ (delays(N, del_seq) : topology(N, K, S_2));
+rbn(N, K, S_1, S_2, del_seq) =   
+    genes2(N, K, S_1) 
+    ~ (delays(N, del_seq) : topology(N, K, S_2));
 // -----------------------------------------------------------------------------
 
 // full_adder(x1[n], x2[n], c_in[n]); ------------------------------------------
