@@ -179,7 +179,7 @@ cic(N, cf, x) = x : seq(i, N, delta(1, .5 / cf) :
 // 1 compile-time arguments:
 //    S, maximum differentiation period in seconds.
 //
-delta(s, t, in) =  in - de.fdelay(size * ma.SR, del * ma.SR, in);
+delta(S, dt, in) =  in - de.fdelay(S * ma.SR, dt * ma.SR, in);
 // -----------------------------------------------------------------------------
 
 // dsm1(x[n]); -----------------------------------------------------------------
