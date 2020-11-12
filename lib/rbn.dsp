@@ -1,5 +1,7 @@
 // =============================================================================
 //  Preliminary tests for random Boolean networks.
+//  reference paper: https://arxiv.org/pdf/0706.3351v2.pdf
+//  quick introduction: http://www.complexityexplorer.org/system/explore/models/writeup_files/000/000/040/original/random-boolean.pdf
 // =============================================================================
 
 declare author "Dario Sanfilippo";
