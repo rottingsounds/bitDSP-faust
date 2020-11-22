@@ -3,7 +3,6 @@ declare author "Till Bovermann";
 declare reference "http://rottingsounds.org";
 // see https://en.wikipedia.org/wiki/Linear-feedback_shift_register
 
-
 import("stdfaust.lib");
 bit32 = library("bitDSP_int32.lib");
 
@@ -15,10 +14,11 @@ bit32 = library("bitDSP_int32.lib");
 // CXXFLAGS="-I ../../../include" faust2caqt -I ../lib lfsr32-example.dsp
 // // open lfsr32-example.app
 
-dac_bits = int(nentry("dac bits",1,1,32,1));
-dac_offset    = min(int(nentry("dac offset",0,0,31,1)), 32-dac_bits);
+dac_bits   =     int(nentry("dac bits"  ,1,1,32,1));
+dac_offset = min(int(nentry("dac offset",0,0,31,1)), 32-dac_bits);
 
-// init value, change to reset to that new value
+// initial state of the LFSR (!=0)
+// change to reset LFSR to start with that new value
 lfsr_init = nentry("init val",1,1,492000,1); 
 
 // set your own bits

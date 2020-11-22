@@ -14,16 +14,21 @@ bit32 = library("bitDSP_int32.lib");
 // CXXFLAGS="-I ../../../include" faust2caqt -I ../lib lfsr-example.dsp
 // // open lfsr-example.app
 
-dac_bits = int(nentry("dac bits",1,1,32,1));
-dac_offset    = min(int(nentry("dac offset",0,0,31,1)), 32-dac_bits);
+// dac_bits = int(nentry("dac bits",1,1,32,1));
+// dac_offset    = min(int(nentry("dac offset",0,0,31,1)), 32-dac_bits);
+dac_bits   = 16;
+dac_offset = 0;
 
-lfsr_bits = int(nentry("lfsr bits",1,1,32,1));
-lfsr_init = nentry("init val",1,1,492000,1); 
-lfsr_mask = bit32.bit_mask(
-	par(i,6,
-		nentry("parity source bit %i",i,0,31,1)
-	)
-);
+// lfsr_bits = int(nentry("lfsr bits",1,1,32,1));
+lfsr_bits = 16;
+// lfsr_init = nentry("init val",1,1,492000,1); 
+lfsr_init = 12356; 
+// lfsr_mask = bit32.bit_mask(
+// 	par(i,6,
+// 		nentry("parity source bit %i",i,0,31,1)
+// 	)
+// );
+lfsr_mask = bit32.bit_mask((15, 13, 11, 10, 2));
 
 
 lfsr = (
