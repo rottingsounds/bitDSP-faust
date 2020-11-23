@@ -282,8 +282,9 @@ div = ffunction(int div_i (int, int), "bitDSP.h", "");
 //
 // (author: Till Bovermann) 
 //
-// compute lfsr on a 32bit integer bitset (assuming it to be unsigned).
-// see https://en.wikipedia.org/wiki/Linear-feedback_shift_register
+// Compute LFSR on a 32bit integer bitset (assuming it to be unsigned).
+// Resets on changed input state.
+// See https://en.wikipedia.org/wiki/Linear-feedback_shift_register for details on LFSRs.
 // 
 // note: relies on foreign functions (c-based platforms only)
 //
@@ -297,8 +298,8 @@ div = ffunction(int div_i (int, int), "bitDSP.h", "");
 // + `mask` — determining which bits to consider for the parity computation
 //-----------------------------------------------------------------------------
 lfsr32(mask, in) = step(mask, in) ~ _ with {
-    step(mask, in, fbIn) = selector(in, fbIn) <: (parity(_ & mask), left_shift(_, 1)) : |;
-    selector(a, b) = select2(changed(a), b, a);
+    step(mask, in, fbIn) = select_on_change(in, fbIn) <: (parity(_ & mask), left_shift(_, 1)) : |;
+    select_on_change(a, b) = select2(changed(a), b, a);
     changed(x) = x != x';
 };
 
@@ -307,8 +308,9 @@ lfsr32(mask, in) = step(mask, in) ~ _ with {
 //
 // (author: Till Bovermann) 
 //
-// compute lfsr on an n-bit integer bitset (assuming it to be unsigned).
-// see https://en.wikipedia.org/wiki/Linear-feedback_shift_register
+// Compute LFSR on an n-bit integer bitset (assuming it to be unsigned).
+// Resets on changed input state.
+// See https://en.wikipedia.org/wiki/Linear-feedback_shift_register for details on LFSRs.
 // 
 // note: relies on foreign functions (c-based platforms only)
 //
@@ -324,8 +326,8 @@ lfsr32(mask, in) = step(mask, in) ~ _ with {
 //-----------------------------------------------------------------------------
 lfsr(n, mask, in) = step(n, mask, in) ~ _ with {
 	masked_out(n, val) = right_shift(-1, 32-n) & val;
-    step(n, mask, in, fbIn) = selector(in, fbIn) <: (parity(_ & mask), masked_out(n, left_shift(_, 1))) : |;
-    selector(a, b) = select2(changed(a), b, a);
+    step(n, mask, in, fbIn) = select_on_change(in, fbIn) <: (parity(_ & mask), masked_out(n, left_shift(_, 1))) : |;
+    select_on_change(a, b) = select2(changed(a), b, a);
     changed(x) = x != x';
 };
 
@@ -348,7 +350,7 @@ lfsr(n, mask, in) = step(n, mask, in) ~ _ with {
 // bitDAC_i(8, 2, _)
 // ```
 //-----------------------------------------------------------------------------
-bitDAC_i(size, offset, in) = right_shift((in & bitmask), offset) // shift selection to right-most bits
+bitDAC_i(offset, size, in) = right_shift((in & bitmask), offset) // shift selection to right-most bits
 with {
 	maxval = left_shift(1,size)-1; // maximum value that fits into size
 	bitmask = left_shift(maxval, offset); // mask selects area of which to create PCM values
@@ -378,7 +380,7 @@ with {
 //-----------------------------------------------------------------------------
 bitDAC(offset, size, in) = normed(right_shift((in & bitmask), offset)) // shift selection to right-most bits
 with {
-  maxval = left_shift(1,size)-1; // maximum value that fits into size
+  maxval = min(left_shift(1,size)-1, 31); // maximum value that fits into size
   bitmask = left_shift(maxval, offset); // mask selects area of which to create PCM values
 	normed(out) = out / (maxval-1); // normalise values to be between 0 and 1 (excl.)
 };

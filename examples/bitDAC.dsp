@@ -1,4 +1,5 @@
-declare name "bitDAC - example";
+declare name "bitDAC";
+declare description "bitDAC - example";
 declare author "Till Bovermann";
 declare reference "http://rottingsounds.org";
 

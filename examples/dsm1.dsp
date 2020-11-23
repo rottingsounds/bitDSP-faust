@@ -1,4 +1,5 @@
-declare name "First-order delta-sigma modulator - example";
+declare name "dsm1";
+declare description "First-order delta-sigma modulator - example";
 declare author "Till Bovermann";
 declare reference "http://rottingsounds.org";
 
