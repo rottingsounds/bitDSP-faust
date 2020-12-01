@@ -97,10 +97,10 @@ Subsequent is a list of currently implemented functions (last updated on 2020-12
     + [`bitDAC` and `bitDAC_i`](#-bitdac--and--bitdac-i-)
     + [`dsm1` and `dsm1_32`](#-dsm1--and--dsm1-32-)
   * [conversion](#conversion)
-  * [`dec2bitBus`](#-dec2bitbus-)
-  * [`bitBus_to_int`](#-bitbus-to-int-)
-  * [`int32_to_bitBus`](#-int32-to-bitbus-)
-  * [`int32_to_bitBus`](#-int32-to-bitbus--1)
+    + [`dec2bitBus`](#-dec2bitbus-)
+    + [`bitBus_to_int`](#-bitbus-to-int-)
+    + [`int32_to_bitBus`](#-int32-to-bitbus-)
+    + [`int32_to_bitBus`](#-int32-to-bitbus--1)
 
 
 
@@ -327,21 +327,21 @@ bitConv = library("bitDSP_conversion");
 
 to your `.dsp`-file.
 
-### `dec2bitBus`
+#### `dec2bitBus`
 
 Converts a decimal integer (N) into a Faust list containing the binary digits, that is, the binary digits in parallel.
 
 
-### `bitBus_to_int`
+#### `bitBus_to_int`
 
 turn a stream of parallel binary values into an integer representation by left-shifting (`<<`) the values of the input busses. 
 
 
-### `int32_to_bitBus`
+#### `int32_to_bitBus`
 
 Turn a 1bit signal into a stream of parallel binary values
 
-### `int32_to_bitBus`
+#### `int32_to_bitBus`
 
 turn an integer signal into a stream of parallel binary values
 left-shifting (`<<`) the values of the input busses. 

@@ -292,7 +292,7 @@ div = ffunction(int div_i (int, int), "bitDSP.h", "");
 // #### Usage
 //
 // ```
-// _ : lfsr(mask) : _
+// _ : lfsr32(mask) : _
 // ```
 // with
 // + `mask` — determining which bits to consider for the parity computation
