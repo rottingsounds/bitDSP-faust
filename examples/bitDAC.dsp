@@ -7,12 +7,12 @@ import("stdfaust.lib");
 bit32 = library("bitDSP_int32.lib");
 
 // plot
-// CXXFLAGS="-I ../include" faust2csvplot -I ../lib bitDAC-example.dsp
-// ./bitDAC-example -n 10
+// CXXFLAGS="-I ../include" faust2csvplot -I ../lib bitDAC.dsp
+// ./bitDAC -n 10
 
 // compile
-// CXXFLAGS="-I ../../../include" faust2caqt -I ../lib bitDAC-example.dsp
-// ./bitDAC-example
+// CXXFLAGS="-I ../../../include" faust2caqt -I ../lib bitDAC.dsp
+// ./bitDAC
 
 dac_bits = int(hslider("dac bits",1,1,32,1));
 dac_offset    = min(int(hslider("dac offset",0,0,31,1)), 32-dac_bits);
