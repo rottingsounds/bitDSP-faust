@@ -1,4 +1,4 @@
-# bitDSP-faust
+# bitDSP in faust
 *[Till Bovermann](http://tai-studio.org) & [Dario Sanfilippo](https://www.dariosanfilippo.com/) for the [rottingsounds project](http://rottingsounds.org)*
 
 BitDSP is a set of [faust](http://faust.grame.fr/) library functions aimed to help explore and research artistic possibilities of bit-based algorithms. 
