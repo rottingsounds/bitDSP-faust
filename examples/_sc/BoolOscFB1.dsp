@@ -8,7 +8,7 @@ import("stdfaust.lib");
 
 
 // SuperCollider
-// CXXFLAGS="-I ../../../../include" faust2supercollider -I ../../lib -noprefix BoolOscFB.dsp
+// CXXFLAGS="-I ../../../../include" faust2supercollider -I ../../lib -noprefix BoolOscFB1.dsp
 
 // plot
 // CXXFLAGS="-I ../include" faust2csvplot -I ../lib boolOsc_fb.dsp
