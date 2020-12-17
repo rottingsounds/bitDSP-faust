@@ -6,7 +6,8 @@
 // behaviours ranging from limit cycles to strange attractors and 
 // unpredictability.
 
-declare name "Recursive Boolean network";
+declare name "RBN";
+declare description "Recursive Boolean network";
 declare author "Dario Sanfilippo";
 declare reference "Stuart A Kauffman, “Metabolic stability and epigenesis 
     in randomly constructed genetic nets,” Journal of theoretical 

@@ -8,7 +8,8 @@
 // function. The patterns can be displayed easily compiling the
 // faust2csvplot program as indicated below.
 
-declare name "Elementary cellular automata – size-16 lattice example; rule 110";
+declare name "ca";
+declare description "Elementary cellular automata – size-16 lattice example; rule 110";
 declare author "Dario Sanfilippo";
 declare reference "Stephen Wolfram – A New Kind of Science (2002)";
 

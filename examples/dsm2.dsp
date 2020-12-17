@@ -1,24 +1,26 @@
-declare name "First-order delta-sigma modulator - example";
-declare author "Till Bovermann";
+declare name "DSM2";
+declare description "Second-order delta-sigma modulator example";
+Second-order delta-sigma modulator - example
+declare author "Dario Sanfilippo";
 declare reference "http://rottingsounds.org";
 
 import("stdfaust.lib");
 bit = library("bitDSP.lib");
 
 // plot
-// CXXFLAGS="-I ../include" faust2csvplot -double -I ../lib dsm1-example.dsp
-// ./dsm1-example -n 10
+// CXXFLAGS="-I ../include" faust2csvplot -double -I ../lib dsm2.dsp
+// ./dsm2 -n 10
 
 // compile
-// CXXFLAGS="-I ../../../include" faust2caqt -double -I ../lib dsm1-example.dsp
-// ./dsm1-example
+// CXXFLAGS="-I ../../../include" faust2caqt -double -I ../lib dsm2.dsp
+// ./dsm2
 
 // High-precision sinewave
 sine(f) = sin(os.phasor(2 * ma.PI, f));
 
 // Bipolar multi-bit signal to bipolar one-bit signal
 // Standard test with a 1 kHz tone
-onebitstream = bit.dsm1(sine(1000));
+onebitstream = bit.dsm2(sine(1000));
 
 // Bipolar one-bit signal to bipolar multi-bit signal
 // The process of low-passing corresponds to averaging
