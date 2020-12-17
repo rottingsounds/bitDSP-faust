@@ -267,7 +267,8 @@ bitstream_adderN(N) =   bitstream_adderN(N - 1) ,
 // N-delay array.
 //
 delays(N, sequence) = 
-    par(i, N, rint(de.fdelay(192000, ba.take(i + 1, sequence) * factor)))
+    par(i, N, rint(de.fdelay(ba.take(i + 1, sequence), 
+        abs((ba.take(i + 1, sequence) * factor) % ba.take(i + 1, sequence)))))
     with {
         factor = 16 ^ hslider("delays stretching", 0, -1, 1, .001);
     };
@@ -300,17 +301,17 @@ seq_triangular =
 //
 // Try stretch values 0.042 or -0.037.
 //
-N = 16;
-K = 16;
-process = 
-    rbn(N, K, 316, 153, seq_hexagonal) : par(i, 2, bitstream_adderN(N / 2));
+// N = 8;
+// K = 8;
+// process = 
+//     rbn(N, K, 316, 153, seq_hexagonal) : par(i, 2, bitstream_adderN(N / 2));
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 // Process example.
 //
-// N = 16; // genes array size
-// K = 8; // genes input size
-// process =
-//     rbn(N, K, 231, 415, seq_fibonacci) : par(i, 2, bitstream_adderN(N / 2));
+N = 16; // genes array size
+K = 8; // genes input size
+process =
+    rbn(N, K, 231, 415, seq_fibonacci) : par(i, 2, bitstream_adderN(N / 2));
 // -----------------------------------------------------------------------------
