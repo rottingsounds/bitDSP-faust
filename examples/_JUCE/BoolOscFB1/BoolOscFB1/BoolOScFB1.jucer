@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="YOzOcl" name="BoolOscFB1" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
+              pluginManufacturer="tai-studio" pluginManufacturerCode="TAI"
+              pluginCode="BFB1" pluginAUIsSandboxSafe="1" companyName="Till Bovermann"
+              companyWebsite="http://tai-studio.org" displaySplashScreen="1">
+  <MAINGROUP id="GPCxkH" name="BoolOscFB1">
+    <GROUP id="{ABBA4D38-8628-34F3-1B59-260003CE7742}" name="Source">
+      <FILE id="PbpjS4" name="BoolOscFB1.h" compile="0" resource="0" file="Source/BoolOscFB1.h"/>
+      <FILE id="pViJ6S" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="SlSNph" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="DfvwD5" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="AwI6Uu" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="BoolOScFB1"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="BoolOScFB1"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../../../../../../../sound/src/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../../../../../../../sound/src/JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <OSX/>
+  </LIVE_SETTINGS>
+</JUCERPROJECT>

@@ -1,3 +1,7 @@
 myDevelopment
 examples/*.app
 test
+**/Builds
+**/JuceLibraryCode
+**/*.app
+
