@@ -334,6 +334,27 @@ pattern_match(pattern, x) =
     };
 // -----------------------------------------------------------------------------
 
+// noisiness1bit(x[n]); --------------------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// Noisiness measurement based on a zero-latency approach for approximated
+// autocorrelation.
+//
+noisiness(x) = par(i, 32, fi.pole(1 - (1 / ma.SR), (1 / ma.SR)
+    * (x xor x@(ba.take(i + 1, lags))))) : maxN(32) ^ 2
+        : fi.pole(1 - (1 / ma.SR), *(1 / ma.SR))
+    with {
+        prime_bands = ( 17, 19, 23, 31, 41, 53, 61, 79, 101, 127, 157, 199,
+                        251, 317, 397, 503, 631, 797, 997, 1259, 1583, 1997,
+                        2521, 3163, 3989, 5011, 6301, 7949, 10007, 12589, 15859,
+                        19949);
+        lags = par(i, 32, (1 / ba.take(i + 1, prime_bands)) * ma.SR);
+        maxN(1) = _;
+        maxN(2) = max;
+        maxN(N) = max(maxN(N - 1));
+    };
+// -----------------------------------------------------------------------------
 
 ////////////////////// utilities
 
