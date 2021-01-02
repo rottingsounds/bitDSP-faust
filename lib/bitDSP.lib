@@ -318,3 +318,13 @@ zc1bit(x) = ba.if((x xor x') != 0, 1, -1); // corresponds to 1 - |2x|
 
 ////////////////////// utilities
 
+// r_int(x[n]); ----------------------------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// Unlike Faust's "rint" primitive, this function returns an int.
+// Till: we may want to replace rint with this function in the entire
+// library, how would that be?
+//
+r_int(x) = ba.if(x < 0, int(x - .5), int(x + .5));
+// -----------------------------------------------------------------------------
