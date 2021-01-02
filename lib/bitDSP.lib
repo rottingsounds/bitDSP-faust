@@ -316,6 +316,25 @@ bitrot(noise, chance, type) = _ <: select3(type-1, low(noise, chance, _), flip(n
 zc1bit(x) = ba.if((x xor x') != 0, 1, -1); // corresponds to 1 - |2x|
 // -----------------------------------------------------------------------------
 
+// pattern_match(list, x[n]); --------------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// This function takes a list of bitstream values as first argument, and
+// the bitstream input as second argument. The function outputs 1 is the
+// pattern in the list macthes the current input stream, zero otherwise.
+// The function was tested and gave promising results as a bitstream
+// nonlinear distortion technique, for example, by flipping the current
+// bit whenever the pattern is matched.
+//
+pattern_match(pattern, x) =
+    par(i, L, r_int((x @ i)) == r_int(ba.take(L - i, pattern))) :> r_int == L
+    with {
+        L = r_int(ba.count(pattern));
+    };
+// -----------------------------------------------------------------------------
+
+
 ////////////////////// utilities
 
 // r_int(x[n]); ----------------------------------------------------------------
