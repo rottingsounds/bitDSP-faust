@@ -299,8 +299,22 @@ bitrot(noise, chance, type) = _ <: select3(type-1, low(noise, chance, _), flip(n
     coin(noise, chance) = noise < chance;
 };
 
-
-
+// zc1bit(x1[n]); --------------------------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// The zero-crossing detection function corresponds to the multibit
+// operation 1 - |2x|, hence it can be used as a nonlinear distorion
+// unit.
+//
+// 2 inputs:
+//    x1[n], bitstream;
+//
+// 1 outputs:
+//    y[n], ones when a ZC occurs, -1 otherwise.
+//
+zc1bit(x) = ba.if((x xor x') != 0, 1, -1); // corresponds to 1 - |2x|
+// -----------------------------------------------------------------------------
 
 ////////////////////// utilities
 
