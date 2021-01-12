@@ -21,8 +21,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="BoolOScFB1"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="BoolOScFB1"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="BoolOscFB1"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="BoolOscFB1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../../../../../../../sound/src/JUCE/modules"/>
