@@ -5,3 +5,5 @@ test
 **/JuceLibraryCode
 **/*.app
 
+**/_sc/*.sc
+**/_sc/*.scd
