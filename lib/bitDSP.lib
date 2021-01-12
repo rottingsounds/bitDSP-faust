@@ -48,6 +48,26 @@ si = library("signals.lib");
 
 /////////////////////////// oscillators
 
+//---------------------------------`(bit.)silence`---------------------------------------
+//
+// (author: Till Bovermann) 
+//
+// by definition, silence is the alteration of the two binary states at nyquist frequency
+// 
+//
+//
+// #### Usage
+//
+// ```
+// silence : _; // bimodal, i.e. between [-1, 1]
+// ```
+//-----------------------------------------------------------------------------
+silence = dirac : fb(_) ~ _ with {
+  dirac = 1-1';
+  fb(init, x) = -x + init;
+};
+
+
 // bool_osc0(del1[n], del2[n], del3[n], del4[n]); ------------------------------
 //
 // (author: Dario Sanfilippo)
@@ -202,6 +222,23 @@ dsm1(x) = loop
       };
 // -----------------------------------------------------------------------------
 
+// ddsm1(x[n]); -----------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
+// First-order digital delta-sigma modulator, alternat implementation.
+//
+// 1 inputs:
+//    x[n];
+//
+// 1 outputs:
+//    y[n], modulated input in the range [-1; 1].
+//
+ddsm1(x) = y
+    letrec {
+        'y = ba.if(fi.pole(1, x - y) < 0, -1, 1);
+    };
+
 
 // dsm2(x[n]); -----------------------------------------------------------------
 //
@@ -277,9 +314,9 @@ bitstream_adder(x1, x2) =  loop
 // bitrot
 //
 // under a specified likelihood (noise, chance) and depending on type, either 
-// + `type == -1` -- set a bit's value to low 
-// + `type == 0` -- flip bit
-// + `type == 1` -- set a bit's value to high
+// + `type == 1` -- set a bit's value to low 
+// + `type == 2` -- flip bit
+// + `type == 3` -- set a bit's value to high
 //
 // #### Usage
 //
@@ -287,17 +324,23 @@ bitstream_adder(x1, x2) =  loop
 // _ : bitrot(noise, chance, type) : _
 // ```
 // with
-// + `input` -- a unimodal bitstream
+// + `input` -- a bimodal bitstream
 // + `noise` -- unimodal noise source between [0, 1[
 // + `chance` -- parameter between 0 and 1
 // + `type` -- see above
 //-----------------------------------------------------------------------------
-bitrot(noise, chance, type) = _ <: select3(type-1, low(noise, chance, _), flip(noise, chance, _), high(noise, chance, _)) with {
-    low(noise, chance, x) = select2(coin(noise, chance), x, 0);
-    high(noise, chance, x) = select2(coin(noise, chance), x, 1);
-    flip(noise, chance, x) = select2(coin(noise, chance), x, 1-x);
-    coin(noise, chance) = noise < chance;
-};
+bitrot_low(noise, chance, x) = select2(coin(noise, chance), x, -1);
+bitrot_flip(noise, chance, x) = select2(coin(noise, chance), x, -x);
+bitrot_high(noise, chance, x) = select2(coin(noise, chance), x, 1);
+
+// helper
+coin(noise, chance) = noise <= chance;
+
+bitrot(noise, chance, type, x) = select3(type-1, 
+  bitrot_low(noise, chance, x), 
+  bitrot_flip(noise, chance, x), 
+  bitrot_high(noise, chance, x)
+);
 
 // zc1bit(x1[n]); --------------------------------------------------------------
 //
