@@ -16,7 +16,7 @@ clip(l, h, x) = max(l, min(h, x));
 
 // =============================================================================
 
-MAX_clip = rint(hslider("base-2-exponent", 0, 0, 32, 1));
+MAX_clip = 1024 ^ hslider("clip_bounds", 0, 0, 1, .000001);
 
 int_clip(l, h, x) = clip(l, h, +(x)) ~ _;
 
@@ -90,9 +90,9 @@ bit2mbit(x) = fi.lowpass(4, 4000, x);
 G = hslider("FB gain", 1, 1, 4, 1);
 //in = os.osc(1000);
 in = no.noise;
-cf1 = hslider("cf1", 0.1, 0, 1, .001);
-cf2 = hslider("cf2", 0.1, 0, 1, .001);
-fb = hslider("fb", 0.1, -4, 4, .001);
+cf1 = hslider("cf1", 0.1, 0, 1, .000001);
+cf2 = hslider("cf2", 0.1, 0, 1, .000001);
+fb = hslider("fb", 0.1, -1, 1, .000001);
 del = hslider("del", 0, 0, 64, 1);
 and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
 or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
@@ -115,8 +115,8 @@ test_clip = y1 , y2
 
 test_clip2 = y1 , y2
     letrec {
-        'y1 = lp1bit2_clip(cf1, and(y1, y2) * fb);
-        'y2 = lp1bit2_clip(cf2, or(y1, y2) * fb);
+        'y1 = lp1bit2_clip(cf1, y2 * fb);
+        'y2 = lp1bit2_clip(cf2, y1 * fb);
     };
 
 process = test_clip;
