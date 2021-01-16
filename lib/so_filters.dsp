@@ -92,7 +92,7 @@ G = hslider("FB gain", 1, 1, 4, 1);
 in = no.noise;
 cf1 = hslider("cf1", 0.1, 0, 1, .000001);
 cf2 = hslider("cf2", 0.1, 0, 1, .000001);
-fb = hslider("fb", 0.1, -1, 1, .000001);
+fb = hslider("fb", 0.1, -2, 2, .000001);
 del = hslider("del", 0, 0, 64, 1);
 and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
 or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
@@ -107,16 +107,47 @@ osc_test2 = y1 , y2
         'y2 = lp1bit2(cf2, or(y1, y2) * fb);
     };
 
-test_clip = y1 , y2
+lh_clip = y1 , y2
     letrec {
         'y1 = lp1bit_clip(cf1, y2 * fb);
         'y2 = hp1bit_clip(cf2, y1 * fb);
     };
 
-test_clip2 = y1 , y2
+ll_clip = y1 , y2
+    letrec {
+        'y1 = lp1bit_clip(cf1, y2 * fb);
+        'y2 = lp1bit_clip(cf2, y1 * fb);
+    };
+
+hh_clip = y1 , y2
+    letrec {
+        'y1 = hp1bit_clip(cf1, y2 * fb);
+        'y2 = hp1bit_clip(cf2, y1 * fb);
+    };
+
+lh_clip2 = y1 , y2
+    letrec {
+        'y1 = lp1bit2_clip(cf1, y2 * fb);
+        'y2 = hp1bit2_clip(cf2, y1 * fb);
+    };
+
+ll_clip2 = y1 , y2
     letrec {
         'y1 = lp1bit2_clip(cf1, y2 * fb);
         'y2 = lp1bit2_clip(cf2, y1 * fb);
     };
 
-process = test_clip;
+hh_clip2 = y1 , y2
+    letrec {
+        'y1 = hp1bit2_clip(cf1, y2 * fb);
+        'y2 = hp1bit2_clip(cf2, y1 * fb);
+    };
+
+sel = nentry("selector", 0, 0, 5, 1);
+
+process =   lh_clip ,
+            ll_clip ,
+            hh_clip ,
+            lh_clip2 ,
+            ll_clip2 ,
+            hh_clip2 : ro.interleave(2, 6) : par(i, 2, ba.selectn(6, sel) : fi.svf.hp(10, .707));
