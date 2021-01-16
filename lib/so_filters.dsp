@@ -115,8 +115,8 @@ lh_clip = y1 , y2
 
 ll_clip = y1 , y2
     letrec {
-        'y1 = lp1bit_clip(cf1, y2 * fb);
-        'y2 = lp1bit_clip(cf2, y1 * fb);
+        'y1 = lp1bit_clip(cf1, (y2 @ del) * fb) : lp1bit_clip(cf1) : lp1bit_clip(cf1);
+        'y2 = lp1bit_clip(cf2, (y1 @ del) * fb) : lp1bit_clip(cf1) : lp1bit_clip(cf1);
     };
 
 hh_clip = y1 , y2
