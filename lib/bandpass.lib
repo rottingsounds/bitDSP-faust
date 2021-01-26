@@ -50,5 +50,5 @@ svf2blti(cf, q, k, in) =   tick
                    peak = lp - hp;
                };
       };
-bp(cf, q, x) = svf2blti(cf, q, 1, x) : ba.selectn(10,1);
+bp(cf, q, x) = svf2blti(cf, q, 1, x) : ba.selectn(10,3);
 
