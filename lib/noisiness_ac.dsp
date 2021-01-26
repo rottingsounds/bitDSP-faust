@@ -8,10 +8,15 @@ declare copyright "Copyright (C) 2021 Dario Sanfilippo
 declare version "0.10";
 declare license "GPL v3.0 license";
 
-test = bp(cf, q, no.noise) > 0;
-cf = hslider("f[scale:log]", 1000, 10, 20000, .00001) : si.smoo;
-q = hslider("q", 1, 0.001, 1000, .000001);
-cal = nentry("calibrate", 1, 0, 1024, .000001);
+ddsm1(x) = y
+    letrec {
+        'y = ba.if(fi.pole(1, x - y) < 0, -1, 1);
+    };
+
+test = ddsm1(bp(cf, q, no.noise)) > 0;
+cf = hslider("f[1][scale:log]", 1000, 10, 20000, .00001) : si.smoo;
+q = hslider("q[2]", 1, 0.001, 1000, .000001);
+cal = nentry("calibrate[3]", 1, 0, 1024, .000001);
 noisiness(x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x))) : inspect(ba.take(i + 1, prime_bands), 0, 1)) : (1 - aad(32) * cal) : inspect(0, -5, 5)
     with {
         prime_bands = ( 17, 19, 23, 31, 41, 53, 61, 79, 101, 127, 157, 199,
@@ -36,5 +41,5 @@ noisiness(x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x))) : inspect(
                                     min(ma.EPSILON * -1, x2),
                                     max(ma.EPSILON, x2));
     };
-process = (bp(cf, q, no.noise) <: si.bus(2)) , noisiness(test) * checkbox("mute");
+process = (bp(cf, q, no.noise) <: si.bus(2)) , noisiness(test) * checkbox("unmute");
 
