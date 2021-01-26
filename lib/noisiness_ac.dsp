@@ -35,5 +35,5 @@ noisiness(x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x))) : inspect(
                                     min(ma.EPSILON * -1, x2),
                                     max(ma.EPSILON, x2));
     };
-process = noisiness(test);
+process = (fi.svf.bp(cf, q, no.noise) <: si.bus(2)) , noisiness(test) * checkbox("mute");
 
