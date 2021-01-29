@@ -1,5 +1,4 @@
 import("stdfaust.lib");
-import("stdfaust.lib");
 
 // =============================================================================
 // Auxiliary functions =========================================================
@@ -15,8 +14,6 @@ clip(l, h, x) = max(l, min(h, x));
 // -----------------------------------------------------------------------------
 
 // =============================================================================
-
-MAX_clip = 1024 ^ hslider("clip_bounds", 0, 0, 1, .000001);
 
 int_clip(l, h, x) = clip(l, h, +(x)) ~ _;
 
@@ -87,19 +84,23 @@ hp1bit2_clip(cf, x) = ddsm2_clip(1, x - y)
 
 
 bit2mbit(x) = fi.lowpass(4, 4000, x);
-G = hslider("FB gain", 1, 1, 4, 1);
+G = hslider("FB gain", 1, 1, 64, 1);
 //in = os.osc(1000);
 in = no.noise;
 cf1 = hslider("cf1", 0.1, 0, 1, .000001);
 cf2 = hslider("cf2", 0.1, 0, 1, .000001);
 fb = hslider("fb", 0.1, -2, 2, .000001);
+fb2 = hslider("fb2", 0.1, -2, 2, .000001);
 del = hslider("del", 0, 0, 192000, 1);
+MAX_clip = hslider("clip_bounds", 1, 1, 1024, 1);
+//MAX_clip = 1024 ^ hslider("clip_bounds", 0, 0, 1, .000001);
 and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
 or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
+orx(x, y) = ba.if((x > 0) xor (y > 0), 1, -1);
 osc_test = y1 , y2
     letrec {
-        'y1 = lp1bit2(cf1, y2 * fb);
-        'y2 = hp1bit2(cf2, y1 * fb);
+        'y1 = int1bit_clip(G, and(y1, y2) * fb);
+        'y2 = int1bit_clip(G, and(y2, y1) * fb);
     };
 osc_test2 = y1 , y2
     letrec {
@@ -145,9 +146,11 @@ hh_clip2 = y1 , y2
 
 sel = nentry("selector", 0, 0, 5, 1);
 
-process =   lh_clip ,
-            ll_clip ,
-            hh_clip ,
-            lh_clip2 ,
-            ll_clip2 ,
-            hh_clip2 : ro.interleave(2, 6) : par(i, 2, ba.selectn(6, sel) : fi.svf.hp(10, .707));
+process = osc_test;
+
+// process =   lh_clip ,
+//             ll_clip ,
+//             hh_clip ,
+//             lh_clip2 ,
+//             ll_clip2 ,
+//             hh_clip2 : ro.interleave(2, 6) : par(i, 2, ba.selectn(6, sel) : fi.svf.hp(10, .707));
