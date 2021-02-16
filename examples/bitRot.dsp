@@ -19,7 +19,7 @@ bit = library("bitDSP.lib");
 /////////////////////////// UI ////////////////////////////////
 chance = hslider("chance", 0, 0, 1, 0.0001);
 type   = hslider("type"  , 1, 1, 3, 1);
-amp    = hslider("amp"  , 0, 0, 1, 0.001) : si.smooth;
+amp    = hslider("amp"  , 0, 0, 1, 0.001) : si.smoo;
 
 
 /////////////////////////// Input /////////////////////////////
@@ -36,7 +36,8 @@ noise = (no.noise + 1) * 0.5;
 // 	bit2mbit(x) = fi.lowpass(4, 4000, x);
 // };
 
-process = bitSin : bit.bitRot(noise, chance, type) : outPCM(2, amp) with {
+
+process = bitSin : bit.bitrot(noise, chance, type) : outPCM(2, amp) with {
 	outPCM(N, amp, x) = fi.lowpass(2, 4000, x) * amp : leakdc(0.999) <: si.bus(N);
 	leakdc(coef, x) = y letrec {
 	  'y = x - x' + coef * y;
