@@ -23,8 +23,8 @@ pattern_match(pattern, x) =
         L = r_int(ba.count(pattern));
     };
 
-nl1(x) = ba.if(pattern_match((1, -1, -1), x), -x, x);
-nl2(x) = ba.if(pattern_match((1, 1, -1, -1, 1), x), -x, x);
+nl1(x) = ba.if(pattern_match((-1, -1, -1), x), -x, x);
+nl2(x) = ba.if(pattern_match((1, 1, 1), x), -x, x);
 
 int_clip(l, h, x) = clip(l, h, +(x)) ~ _;
 
