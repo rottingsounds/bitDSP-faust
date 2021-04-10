@@ -1,1 +1,174 @@
 // we'll put our generators here
+
+// c1, c2 in range [0..1]
+// we'll put our generators here
+
+import("stdfaust.lib");
+
+
+
+//////////////////////////// bfb ////////////////////////
+// author: Till Bovermann
+// c1, c2 in range [0..1]
+// c1 = hslider("c1", 0, 0, 1, 0.0001);
+// c2 = hslider("c2", 0, 0, 1, 0.0001);
+// process = bfb(c1, c2);
+
+
+bfb(c1, c2) = p(c1, c2 * 10) with {
+    // mod(a, 0) = 0;
+    mod(a, b) = select2(b > 0, 0, ba.if(a > 0, a % b, a % b + b));
+
+    bool_osc1_mod(d1, d2) = node1 letrec {
+        'node1 = not(node1 xor node2 & node1) @ abs(min(ma.SR,mod(d1, ma.SR)));
+        'node2 = not(node2 xor node1 xor node2) @ abs(min(ma.SR,mod(d2, ma.SR)));
+    } with {
+        not(x) = rint(1 - x);
+    };
+    bool_osc2_mod(d1, d2) = node1 letrec {
+        'node1 = not(node1 & node2) @ abs(min(ma.SR,mod(d1, ma.SR)));
+        'node2 = not(node1 & node2) @ abs(min(ma.SR,mod(d2, ma.SR)));
+    } with {
+        not(x) = rint(1 - x);
+    };
+
+    // sc-like leakdc
+    leakdc(coef, x) = y letrec {
+    'y = x - x' + coef * y;
+    };
+    selectx(which, x, y) = (which * x) + ((1-which) * y);
+
+
+    leak = 0.00003;
+
+    d11 = (1 - d21bias) * 0.0009;
+    d12 = (1 - d22bias) * 0.001;
+    d21 = (1 - d11bias) * 0.001;
+    d22 = (1 - d12bias) * 0.0011;
+    d11bias = d21bias * 0.99;
+    d12bias = d22bias * 0.9499;
+    d22bias = 27;
+    d21bias = 164;
+    
+    p(coef_in, xfb) =  oscfb(coef_in, xfb, d11bias, d11, d12bias, d12, d21bias, d21, d22bias, d22) : par(i, 2, (_ > 0)) with {
+        leakcoef = 1 - ((1-coef_in) * 0.0001);
+        oscfb(leakcoef, xfb, d11bias, d11, d12bias, d12, d21bias, d21, d22bias, d22) = (loop ~ (_, _)) with {
+            loop(fb1, fb2) = 
+                loop1(
+                    selectx(xfb * 1.1, fb1, fb2), 
+                    leakcoef, 
+                    d11bias, d11, 
+                    d12bias, d12
+                ), 
+                loop2(
+                    selectx(1 - xfb, fb2, fb1), 
+                    leakcoef, 
+                    d21bias, d21, 
+                    d22bias, d22
+                );
+            loop1(fb, coef, d1off, d1, d2off, d2) = 
+                bool_osc1_mod(
+                    max(0, d1off + (fb * 20 * d1)),
+                    max(0, d2off + (fb * 1500 * d2))
+                ) 
+                : leakdc(coef);
+            loop2(fb, coef, d1off, d1, d2off, d2) = 
+                bool_osc2_mod(
+                    max(0, d1off + (fb * 1000 * d1)),
+                    max(0, d2off + (fb * 500 * d2))
+                ) 
+                : leakdc(coef);
+        };
+    };
+};
+
+
+//////////////////////////// higks ////////////////////////
+// author: Till Bovermann
+// c1 = hslider("d_bias1[scale:exp]", 0.0001, 0.0001, 1, 0.00001);
+// c2 = hslider("d_bias2[scale:exp]", 0.0001, 0.0001, 1, 0.00001);
+// process = higks(c1, c2);
+
+higks(b1, b2) =  
+    oscfb1(leakcoef, bias1, bias2, mod1, mod2), 
+    oscfb2(leakcoef, bias1, bias2, mod1, mod2)
+    : onebit
+    : si.bus(2)
+with {
+    bias1 = b1 * 0.9999 + 0.0001;
+    bias2 = b2 * 0.9999 + 0.0001;
+    // amp = hslider("m_amp", 0, 0, 4, 0.001) : si.smoo;
+    coef_in = 0.492;
+    leakcoef = 1 - (coef_in * 0.001);
+    mod1 = 0.032;
+    mod2 = 0.014;
+    onebit = par(i, 2, (_ > 0));
+
+    bool_osc1_mod(del1, del2) = node1 letrec {
+    'node1 = not(node1 xor node2 & node1) @ min(ma.SR,(del1 % ma.SR));
+    'node2 = not(node2 xor node1 xor node2) @ min(ma.SR,(del2 % ma.SR));
+    } with {
+    not(x) = 1 - x;
+    };
+    bool_osc2_mod(del1, del2) = node1 letrec {
+    'node1 = not(node1 & node2) @ min(ma.SR,(del1 % ma.SR));
+    'node2 = not(node1 & node2) @ min(ma.SR,(del2 % ma.SR));
+    } with {
+    not(x) = rint(1 - x);
+    };
+    oscfb1(leakcoef, bias1, bias2, mod1, mod2) = loop ~ _ with {
+        loop(fb) = bool_osc1_mod(
+            (fb : map(bias1, mod2)),
+            (fb : map(bias2, mod1))
+        ) : leakdc(leakcoef);
+    };
+    oscfb2(leakcoef, bias1, bias2, mod1, mod2) = loop ~ _ with {
+        loop(fb) = bool_osc2_mod(
+            (fb : map(bias1, mod1)),
+            (fb : map(bias2, mod2))
+        ) : leakdc(leakcoef);
+    };
+    map(bias, scale, in) = max(0, (bias * biasfac) + (scale * in * modfac)) with {
+        biasfac = 15000;
+        modfac = 15000;
+    };
+    // sc-like leakdc
+    leakdc(coef, x) = y letrec {
+    'y = x - x' + coef * y;
+    };
+
+};
+
+
+////////////////// lowPressure //////////////
+// declare author "Till Bovermann";
+
+// c1 = hslider("c1",0,0,1,0.001);
+// c2 = hslider("c2",0,0,1,0.001);
+// process = lowPressure(c1, c2);
+
+lowPressure(c1, c2) = 
+  bool_osc1(dt1, dt2), 
+  bool_osc2(dt2, dt1) 
+: swap(bool_osc3(dt1, dt1)) : si.bus(2) with {
+    dt1 = int(0.671 * (c1 + 0.1 * 0.9) * ma.SR);
+    dt2 = int(0.142 * 0.5 * c2 * ma.SR);
+
+    mod(a, b) = select2(b > 0, 0, ba.if(a > 0, a % b, a % b + b));
+
+    not(x) = 1 - x;
+    pulser(d1, d2) = os.lf_pulsetrain(d2 * d1 + 0.01, 0.5) > 0;
+    bool_osc1(del1, del2) = node1 letrec {
+        'node1 = not(node1 xor node2 & node1) @ max(0, min(ma.SR,(del1 % ma.SR)));
+        'node2 = not(node2 xor node1 xor node2) @ max(0, min(ma.SR,(del2 % ma.SR)));
+    };
+    bool_osc2(del1, del2) = node1 letrec {
+        'node1 = not(node1 xor node2 | node1 | pulser(node1, 1)) @ max(0, min(ma.SR,(del1 % ma.SR)));
+        'node2 = not(node2  | pulser(del1, node1) xor node1 xor node2) @ max(0, min(ma.SR,(del2 % ma.SR)));
+    };
+    bool_osc3(del1, del2) = node2 letrec {
+        'node1 = not(node1 xor node2 | node1) @ max(0, min(ma.SR,(del1 % ma.SR)));
+        'node2 = not(node2 | node1  xor node2) @ max(0, min(ma.SR,(del2 % ma.SR)));
+    };
+    swap(a, x, y) = select2(a, x, y), select2(a, y, x);
+};
