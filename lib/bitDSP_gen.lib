@@ -193,7 +193,7 @@ hp1bit_clip(cf, x) = ddsm1_clip(1, x - y)
     letrec {
         'y = int1bit_clip(1, (x - y) * cf);
     };
-lh_clip = y1 , y2
+gen1(cf1, cf2) = y1 , y2
     letrec {
         'y1 = lp1bit_clip(cf1, y2 * fb);
         'y2 = hp1bit_clip(cf2, y1 * fb);
@@ -224,7 +224,7 @@ not(x) = 1 - x;
 and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
 or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
 orx(x, y) = ba.if((x > 0) xor (y > 0), 1, -1);
-osc_test = y1 , y2
+gen2(G, fb) = y1 , y2
     letrec {
         'y1 = orx(y2, int1bit_clip(reset(y1), G, y1 * fb));
         'y2 = orx(y1, int1bit_clip(reset(y2), G, y2 * -fb));
@@ -238,3 +238,31 @@ osc_test = y1 , y2
                         };
                 };
 // -----------------------------------------------------------------------------
+
+// ---------- GEN3 -------------------------------------------------------------
+//
+MAX_clip = 4096;
+G = 1;
+
+clip(l, h, x) = max(l, min(h, x));
+int_clip(l, h, x) = clip(l, h, +(x)) ~ _;
+ddsm1_clip(G, x) = y
+    letrec {
+        'y = ba.if(int_clip(-MAX_clip, MAX_clip, x - G * y) < 0, -1, 1);
+    };
+ddsm1(G, x) = y
+    letrec {
+        'y = ba.if(fi.pole(1, x - G * y) < 0, -1, 1);
+    };
+
+and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
+or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
+orx(x, y) = ba.if((x > 0) xor (y > 0), 1, -1);
+
+gen3(fb, fb2) = y1 , y2
+    letrec {
+        'y1 = or(ddsm1_clip(G, and(y2, y1) * fb), ddsm1_clip(G, y1 * fb));
+        'y2 = orx(ddsm1_clip(G, and(y2, y1) * fb2), ddsm1_clip(G, y2 * fb2));
+    };
+// -----------------------------------------------------------------------------
+
