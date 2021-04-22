@@ -411,3 +411,50 @@ noisiness(x) = par(i, 32, fi.pole(1 - (1 / ma.SR), (1 / ma.SR)
 //
 r_int(x) = ba.if(x < 0, int(x - .5), int(x + .5));
 // -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Basic clipping function.
+//
+clip(l, h, x) = max(l, min(h, x));
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Clipped integrator with state-reset input: 1 to reset, 0 to accumulate.
+//
+int_clip_r(reset, low, high, x) = clip(low, high, +(x)) ~ *(1 - reset);
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// First-order dsm with clipped and reset-state integrator; G is the ddsm gain.
+//
+ddsm1_clip_r(reset, low, high, G, x) = y
+    letrec {
+        'y = ba.if(int_clip_r(reset, low, high, x - G * y) < 0, -1, 1);
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// First-order dsm integrator with clipping and reset-state.
+//
+int1bit_clip_r(reset, low, high, G, x) = 
+    ddsm1_clip_r(reset, low, high, G, int_clip_r(reset, low, high, x));
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// First-order clipped with reset ddsm lowpass.
+//
+lp1bit_clip_r(reset, low, high, G, cf, x) = y
+    letrec {
+        'y = int1bit_clip_r(reset, low, high, G, (x - y) * cf);
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// 
+//
+hp1bit_clip(reset, low, high, G, cf, x) = 
+    ddsm1_clip_r(reset, low, high, G, x - y)
+    letrec {
+        'y = int1bit_clip_r(reset, low, high, G, (x - y) * cf);
+    };
+// -----------------------------------------------------------------------------

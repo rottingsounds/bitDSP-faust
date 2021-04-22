@@ -1,5 +1,6 @@
 
 import("stdfaust.lib");
+1b = library("bitDSP.lib");
 
 // c1, c2 in range [0..1]
 
@@ -191,72 +192,98 @@ trck(c1,c2) = y2 | y3 | y1, y5 | y4 letrec {
 
 
 
-// // =============================================================================
-// //      Dario's section
-// // =============================================================================
+// =============================================================================
+//      Dario's section
+// =============================================================================
 
-// // ---------- GEN1 -------------------------------------------------------------
-// //
-// fb = 1; 
-// MAX_clip = 2; 
+// ---------- GEN1 -------------------------------------------------------------
+//
+fb = 1;
+MAX_clip = 2;
 
-// clip(l, h, x) = max(l, min(h, x));
-// int_clip(l, h, x) = clip(l, h, +(x)) ~ _;
-// ddsm1_clip(G, x) = y
-//     letrec {
-//         'y = ba.if(int_clip(-MAX_clip, MAX_clip, x - G * y) < 0, -1, 1);
-//     };
-// int1bit_clip(G, x) = ddsm1_clip(G, int_clip(-MAX_clip, MAX_clip, x));
-// lp1bit_clip(cf, x) = y
-//     letrec {
-//         'y = int1bit_clip(1, (x - y) * cf);
-//     };
-// hp1bit_clip(cf, x) = ddsm1_clip(1, x - y)
-//     letrec {
-//         'y = int1bit_clip(1, (x - y) * cf);
-//     };
-// lh_clip = y1 , y2
-//     letrec {
-//         'y1 = lp1bit_clip(cf1, y2 * fb);
-//         'y2 = hp1bit_clip(cf2, y1 * fb);
-//     };
+clip(l, h, x) = max(l, min(h, x));
+int_clip(l, h, x) = clip(l, h, +(x)) ~ _;
+ddsm1_clip(G, x) = y
+    letrec {
+        'y = ba.if(int_clip(-MAX_clip, MAX_clip, x - G * y) < 0, -1, 1);
+    };
+int1bit_clip(G, x) = ddsm1_clip(G, int_clip(-MAX_clip, MAX_clip, x));
+lp1bit_clip(cf, x) = y
+    letrec {
+        'y = int1bit_clip(1, (x - y) * cf);
+    };
+hp1bit_clip(cf, x) = ddsm1_clip(1, x - y)
+    letrec {
+        'y = int1bit_clip(1, (x - y) * cf);
+    };
+gen1(cf1, cf2) = y1 , y2
+    letrec {
+        'y1 = lp1bit_clip(cf1, y2 * fb);
+        'y2 = hp1bit_clip(cf2, y1 * fb);
+    };
 
-// vol = hslider("vol[scale:exp]", 0, 0, 1, .001);
-// cf1 = hslider("cf1[scale:exp]", 0.1, 0, 1, .000001);
-// cf2 = hslider("cf2[scale:exp]", 0.1, 0, 1, .000001);
-// // -----------------------------------------------------------------------------
+vol = hslider("vol[scale:exp]", 0, 0, 1, .001);
+cf1 = hslider("cf1[scale:exp]", 0.1, 0, 1, .000001);
+cf2 = hslider("cf2[scale:exp]", 0.1, 0, 1, .000001);
+// -----------------------------------------------------------------------------
 
-// // ---------- GEN2 -------------------------------------------------------------
-// //
-// MAX = ma.INFINITY;
-// MIN = ma.MIN;
-// E = ma.EPSILON;
-// clip(l, h, x) = max(l, min(h, x));
-// int_clip(reset, l, h, x) = clip(l, h, +(x)) ~ *(1 - reset);
-// ddsm1_clip(reset, G, x) = y
-//     letrec {
-//         'y = ba.if(int_clip(reset, -MAX_clip, MAX_clip, x - G * y) < 0, -1, 1);
-//     };
-// int1bit_clip(reset, G, x) = ddsm1_clip(reset, G, int_clip(reset, -MAX_clip, MAX_clip, x));
-// G = hslider("FB gain", 1, 0, MAX_clip, 1);
-// vol = hslider("vol[scale:exp]", 0, 0, 1, .001);
-// fb = hslider("fb", 1, 0, 1, .000001);
-// MAX_clip = 1024; // hslider("clip_bounds", 2, 1, 4096, 1);
-// not(x) = 1 - x;
-// and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
-// or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
-// orx(x, y) = ba.if((x > 0) xor (y > 0), 1, -1);
-// osc_test = y1 , y2
-//     letrec {
-//         'y1 = orx(y2, int1bit_clip(reset(y1), G, y1 * fb));
-//         'y2 = orx(y1, int1bit_clip(reset(y2), G, y2 * -fb));
-//     }
-//         with {
-//                     reset(x) = ba.if(cond, 1, 0)
-//                         with {
-//                             cond = acc >= ma.SR;
-//                             acc = fi.pole(detect, detect);
-//                             detect = x - x' == 0;
-//                         };
-//                 };
-// // -----------------------------------------------------------------------------
+// ---------- GEN2 -------------------------------------------------------------
+//
+MAX = ma.INFINITY;
+MIN = ma.MIN;
+E = ma.EPSILON;
+clip(l, h, x) = max(l, min(h, x));
+int_clip(reset, l, h, x) = clip(l, h, +(x)) ~ *(1 - reset);
+ddsm1_clip(reset, G, x) = y
+    letrec {
+        'y = ba.if(int_clip(reset, -MAX_clip, MAX_clip, x - G * y) < 0, -1, 1);
+    };
+int1bit_clip(reset, G, x) = ddsm1_clip(reset, G, int_clip(reset, -MAX_clip, MAX_clip, x));
+G = hslider("FB gain", 1, 0, MAX_clip, 1);
+vol = hslider("vol[scale:exp]", 0, 0, 1, .001);
+fb = hslider("fb", 1, 0, 1, .000001);
+MAX_clip = 1024; // hslider("clip_bounds", 2, 1, 4096, 1);
+not(x) = 1 - x;
+and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
+or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
+orx(x, y) = ba.if((x > 0) xor (y > 0), 1, -1);
+gen2(G, fb) = y1 , y2
+    letrec {
+        'y1 = orx(y2, int1bit_clip(reset(y1), G, y1 * fb));
+        'y2 = orx(y1, int1bit_clip(reset(y2), G, y2 * -fb));
+    }
+        with {
+                    reset(x) = ba.if(cond, 1, 0)
+                        with {
+                            cond = acc >= ma.SR;
+                            acc = fi.pole(detect, detect);
+                            detect = x - x' == 0;
+                        };
+                };
+// -----------------------------------------------------------------------------
+
+// ---------- GEN3 -------------------------------------------------------------
+//
+clip(l, h, x) = max(l, min(h, x));
+int_clip(l, h, x) = clip(l, h, +(x)) ~ _;
+ddsm1_clip(G, x) = y
+    letrec {
+        'y = ba.if(int_clip(-4096, 4096, x - G * y) < 0, -1, 1);
+    };
+ddsm1(G, x) = y
+    letrec {
+        'y = ba.if(fi.pole(1, x - G * y) < 0, -1, 1);
+    };
+
+and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
+or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
+orx(x, y) = ba.if((x > 0) xor (y > 0), 1, -1);
+
+gen3(fb, fb2) = y1 , y2
+    letrec {
+        'y1 = or(ddsm1_clip(1, and(y2, y1) * fb), ddsm1_clip(1, y1 * fb));
+        'y2 = orx(ddsm1_clip(1, and(y2, y1) * fb2), ddsm1_clip(1, y2 * fb2));
+    };
+// -----------------------------------------------------------------------------
+
+
