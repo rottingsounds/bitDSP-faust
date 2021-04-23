@@ -377,12 +377,31 @@ pattern_match(pattern, x) =
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+// As above but working with signal, hence potentially time-variant patterns.
+// L is the length of the pattern, x is the input signal, and N is an int
+// between 0 and 2 ^ L - 1 that is converted into binary for the comparison.
+//
+pattern_match_sig(L, x, N) =
+    pattern : par(i, L, r_int((x @ i)) == _) :> r_int == L
+    with {
+        pattern = co.int32_to_bitBus(L, N) : par(i, L, ba.if(>(0), 1, -1));
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
 //
 // Flip the current bit if the pattern matches the stream.
 //
 pattern_bitflip(pattern, x) = ba.if(pattern_match(pattern, x), -x, x);
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// As above but working with signal, hence potentially time-variant patterns.
+// L is the length of the pattern, x is the input signal, and N is an int
+// between 0 and 2 ^ L - 1 that is converted into binary for the comparison.
+//
+pattern_bitflip_sig(L, x, N) = ba.if(pattern_match_sig(L, x, N), -x, x);
+// -----------------------------------------------------------------------------
 
 // noisiness1bit(x[n]); --------------------------------------------------------
 //

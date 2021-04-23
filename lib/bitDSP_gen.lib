@@ -250,15 +250,15 @@ gen4(fb1, fb2) = y1 , y2
     }
         with {
             L = 2;
-            //L = hslider("L", 1, 1, 65536, 1);
-            pattern1 = (-1, -1, 1, -1);
-            pattern2 = (1, -1, 1, -1);
-            pattern3 = (-1, -1, -1, -1);
-            pattern4 = (1, 1, -1, -1);
-            nl1(x) = bit.pattern_bitflip(pattern1, x);
-            nl2(x) = bit.pattern_bitflip(pattern2, x);
-            nl3(x) = bit.pattern_bitflip(pattern3, x);
-            nl4(x) = bit.pattern_bitflip(pattern4, x);
+            S = 4;
+            N1 = int(hslider("N1", 0, 0, 2 ^ S - 1, 1));
+            N2 = int(hslider("N2", 0, 0, 2 ^ S - 1, 1));
+            N3 = int(hslider("N3", 0, 0, 2 ^ S - 1, 1));
+            N4 = int(hslider("N4", 0, 0, 2 ^ S - 1, 1));
+            nl1(x) = bit.pattern_bitflip_sig(S, x, N1);
+            nl2(x) = bit.pattern_bitflip_sig(S, x, N2);
+            nl3(x) = bit.pattern_bitflip_sig(S, x, N3);
+            nl4(x) = bit.pattern_bitflip_sig(S, x, N4);
             plus(x1, x2) = bit.bitstream_adder(x1, x2);
         };
 // -----------------------------------------------------------------------------
