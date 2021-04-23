@@ -230,12 +230,12 @@ gen2(G, fb) = y1 , y2
 gen3(fb1, fb2) = y1 , y2
     letrec {
         'y1 = bit.or(bit.ddsm1_clip_r(0, -L, L, 1, bit.and(y2, y1) * fb1), 
-            bit.ddsm1_clip_r(0, -L, L, 1, y1 * fb));
+            bit.ddsm1_clip_r(0, -L, L, 1, y1 * fb1));
         'y2 = bit.orx(bit.ddsm1_clip_r(0, -L, L, 1, bit.and(y2, y1) * fb2), 
             bit.ddsm1_clip_r(0, -L, L, 1, y2 * fb2));
     }
         with {
-            L = 64;
+            L = 4096;
         };
 // -----------------------------------------------------------------------------
 
