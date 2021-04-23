@@ -239,4 +239,26 @@ gen3(fb1, fb2) = y1 , y2
         };
 // -----------------------------------------------------------------------------
 
-
+// ---------- GEN4 -------------------------------------------------------------
+//
+gen4(fb1, fb2) = y1 , y2
+    letrec {
+        'y1 = nl1(plus(bit.ddsm1_clip_r(0, -L, L, 1, nl2(plus(nl1(y2), 
+            nl2(y1))) * fb1), bit.ddsm1_clip_r(0, -L, L, 1, nl1(y1) * fb1)));
+        'y2 = nl3(plus(bit.ddsm1_clip_r(0, -L, L, 1, nl4(plus(nl3(y2), 
+            nl4(y1))) * fb2), bit.ddsm1_clip_r(0, -L, L, 1, nl3(y2) * fb2)));
+    }
+        with {
+            L = 2;
+            //L = hslider("L", 1, 1, 65536, 1);
+            pattern1 = (-1, -1, 1, -1);
+            pattern2 = (1, -1, 1, -1);
+            pattern3 = (-1, -1, -1, -1);
+            pattern4 = (1, 1, -1, -1);
+            nl1(x) = bit.pattern_bitflip(pattern1, x);
+            nl2(x) = bit.pattern_bitflip(pattern2, x);
+            nl3(x) = bit.pattern_bitflip(pattern3, x);
+            nl4(x) = bit.pattern_bitflip(pattern4, x);
+            plus(x1, x2) = bit.bitstream_adder(x1, x2);
+        };
+// -----------------------------------------------------------------------------

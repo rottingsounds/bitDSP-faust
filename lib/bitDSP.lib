@@ -43,8 +43,7 @@ si = library("signals.lib");
 // sf = library("all.lib");
 // vl = library("version.lib");
 
-
-
+co = library("bitDSP_conversion.lib");
 
 /////////////////////////// oscillators
 
@@ -376,6 +375,14 @@ pattern_match(pattern, x) =
         L = r_int(ba.count(pattern));
     };
 // -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+//
+// Flip the current bit if the pattern matches the stream.
+//
+pattern_bitflip(pattern, x) = ba.if(pattern_match(pattern, x), -x, x);
+// -----------------------------------------------------------------------------
+
 
 // noisiness1bit(x[n]); --------------------------------------------------------
 //
