@@ -5,7 +5,7 @@ declare copyright "MIT";
 // bit = library("bitDSP"); // main library
 // bit32 = library("bitDSP_int32"); // int32-based library
 // bitBus = library("bitDSP_binBus"); // int32-based library
-// bitConv = library("bitDSP_conversion"); // conversion between formats library
+bitConv = library("bitDSP_conversion"); // conversion between formats library
 
 // sc = library("scUGens.lib"); // part of https://github.com/tai-studio/faust-sc
 // lf = library("taiStudio.lib"); // part of https://github.com/tai-studio/faust-sc
@@ -42,8 +42,6 @@ si = library("signals.lib");
 // wa = library("webaudio.lib");
 // sf = library("all.lib");
 // vl = library("version.lib");
-
-co = library("bitDSP_conversion.lib");
 
 /////////////////////////// oscillators
 
@@ -384,7 +382,7 @@ pattern_match(pattern, x) =
 pattern_match_sig(L, x, N) =
     pattern : par(i, L, r_int((x @ i)) == _) :> r_int == L
     with {
-        pattern = co.int32_to_bitBus(L, N) : par(i, L, ba.if(>(0), 1, -1));
+        pattern = bitConv.int32_to_bitBus(L, N) : par(i, L, ba.if(>(0), 1, -1));
     };
 // -----------------------------------------------------------------------------
 
