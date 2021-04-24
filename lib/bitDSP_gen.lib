@@ -250,11 +250,14 @@ gen4(fb1, fb2) = y1 , y2
     }
         with {
             L = 2;
-            S = 4;
+            S = 3;
             N1 = int(hslider("N1", 0, 0, 2 ^ S - 1, 1));
-            N2 = int(hslider("N2", 0, 0, 2 ^ S - 1, 1));
-            N3 = int(hslider("N3", 0, 0, 2 ^ S - 1, 1));
-            N4 = int(hslider("N4", 0, 0, 2 ^ S - 1, 1));
+            N2 = (N1 + 1) % S;
+            N3 = (N2 + 1) % S;
+            N4 = (N3 + 1) % S;
+            //N2 = int(hslider("N2", 0, 0, 2 ^ S - 1, 1));
+            //N3 = int(hslider("N3", 0, 0, 2 ^ S - 1, 1));
+            //N4 = int(hslider("N4", 0, 0, 2 ^ S - 1, 1));
             nl1(x) = bit.pattern_bitflip_sig(S, x, N1);
             nl2(x) = bit.pattern_bitflip_sig(S, x, N2);
             nl3(x) = bit.pattern_bitflip_sig(S, x, N3);
