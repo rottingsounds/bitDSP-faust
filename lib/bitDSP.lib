@@ -33,7 +33,7 @@ ma = library("maths.lib");
 // pm = library("physmodels.lib");
 // rm = library("reducemaps.lib");
 // re = library("reverbs.lib");
-// ro = library("routes.lib");
+ro = library("routes.lib");
 // sp = library("spats.lib");
 si = library("signals.lib");
 // so = library("soundfiles.lib");
@@ -410,19 +410,42 @@ pattern_bitflip_sig(L, x, N) = ba.if(pattern_match_sig(L, x, N), -x, x);
 // Noisiness measurement based on a zero-latency approach for approximated
 // autocorrelation.
 //
-noisiness(x) = par(i, 32, fi.pole(1 - (1 / ma.SR), (1 / ma.SR)
-    * (x xor x@(ba.take(i + 1, lags))))) : maxN(32) ^ 2
-        : fi.pole(1 - (1 / ma.SR), *(1 / ma.SR))
+//noisiness(x) = par(i, 32, fi.pole(1 - (1 / ma.SR), (1 / ma.SR)
+//    * (x xor x@(ba.take(i + 1, lags))))) : maxN(32) ^ 2
+//        : fi.pole(1 - (1 / ma.SR), *(1 / ma.SR))
+//    with {
+//        prime_bands = ( 17, 19, 23, 31, 41, 53, 61, 79, 101, 127, 157, 199,
+//                        251, 317, 397, 503, 631, 797, 997, 1259, 1583, 1997,
+//                        2521, 3163, 3989, 5011, 6301, 7949, 10007, 12589, 15859,
+//                        19949);
+//        lags = par(i, 32, (1 / ba.take(i + 1, prime_bands)) * ma.SR);
+//        maxN(1) = _;
+//        maxN(2) = max;
+//        maxN(N) = max(maxN(N - 1));
+//    };
+noisiness(x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) : 
+    1 - aad(32) * cal : uni_sigmoid
     with {
-        prime_bands = ( 17, 19, 23, 31, 41, 53, 61, 79, 101, 127, 157, 199,
-                        251, 317, 397, 503, 631, 797, 997, 1259, 1583, 1997,
-                        2521, 3163, 3989, 5011, 6301, 7949, 10007, 12589, 15859,
-                        19949);
-        lags = par(i, 32, (1 / ba.take(i + 1, prime_bands)) * ma.SR);
-        maxN(1) = _;
-        maxN(2) = max;
-        maxN(N) = max(maxN(N - 1));
+        cal = 4; // calibration to roughly match 0 with a sine, and 1 with noise
+        stretch = 1; // might eventually be used for pitch estim. (big might)
+        prime_bands = // prime frequencies
+            (17, 19, 23, 31, 41, 53, 61, 79, 101, 127, 157, 199, 251, 
+                317, 397, 503, 631, 797, 997, 1259, 1583, 1997, 2521, 3163, 
+                    3989, 5011, 6301, 7949, 10007, 12589, 15859, 19949);
+        lags = par(i, 32, (1 / ba.take(i + 1, prime_bands)) * ma.SR * stretch);
+        delta(del, in) = in orx (in @ del); // binary differentiaton
+        uni_sigmoid(x) = 1 / (1 + exp(-x * 8 + 4)); // unipolar sigmoid
+        div(x1, x2) = x1 / ba.if(   x2 < 0, // safe division
+                                    min(ma.EPSILON * -1, x2),
+                                    max(ma.EPSILON, x2));
+        aad(N) = // normalised average absolute deviation
+            si.bus(N) <:    (   si.bus(N) ,
+                                (si.bus(N) :> /(N) <: si.bus(N)) :
+                                    ro.interleave(N, 2) :
+                                        par(i, N, (- : abs)) :> _) ,
+                            (si.bus(N) :> / (N)) : div : /((N - 1) * 2);
     };
+
 // -----------------------------------------------------------------------------
 
 ////////////////////// utilities
