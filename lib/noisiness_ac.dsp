@@ -1,5 +1,5 @@
 import("stdfaust.lib");
-import("bandpass.lib");
+//import("bandpass.lib");
 
 declare name "Time-domain noisiness measurement through autocorrelation approximation.";
 declare author "Dario Sanfilippo";
@@ -8,9 +8,9 @@ declare copyright "Copyright (C) 2021 Dario Sanfilippo
 declare version "0.10";
 declare license "GPL v3.0 license";
 
-test = ddsm1(bp(cf, q, no.noise)) > 0;
-cf = hslider("f[1][scale:log]", 1000, 10, 20000, .00001) : si.smoo;
-q = hslider("q[2]", 1, 0.001, 100, .000001);
+//test = ddsm1(bp(cf, q, no.noise)) > 0;
+//cf = hslider("f[1][scale:log]", 1000, 10, 20000, .00001) : si.smoo;
+//q = hslider("q[2]", 1, 0.001, 100, .000001);
 //cal = nentry("calibrate[3]", 1, 0, 1024, .000001);
 //stretch = hslider("lags_stretch[4]", 1, 1 / 16, 16, .000001);
 cal = 4; 
@@ -54,5 +54,5 @@ noisiness(x) =
     par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) : 
         1 - aad(32) * cal : uni_sigmoid;
 
-process = (test <: si.bus(2)) , (noisiness(test) : inspect(0, 0, 1));
+//process = (test <: si.bus(2)) , (noisiness(test) : inspect(0, 0, 1));
 

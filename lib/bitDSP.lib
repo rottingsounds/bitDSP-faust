@@ -469,9 +469,10 @@ pattern_bitflip_sig(L, x, N) = ba.if(pattern_match_sig(L, x, N), -x, x);
 //        maxN(2) = max;
 //        maxN(N) = max(maxN(N - 1));
 //    };
-noisiness(x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) : 
+noisiness(bi_x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) : 
     1 - aad(32) * cal : uni_sigmoid
     with {
+        x = bi_x > 0;
         cal = 4; // calibration to roughly match 0 with a sine, and 1 with noise
         stretch = 1; // might eventually be used for pitch estim. (big might)
         prime_bands = // prime frequencies
@@ -479,7 +480,7 @@ noisiness(x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) :
                 317, 397, 503, 631, 797, 997, 1259, 1583, 1997, 2521, 3163, 
                     3989, 5011, 6301, 7949, 10007, 12589, 15859, 19949);
         lags = par(i, 32, (1 / ba.take(i + 1, prime_bands)) * ma.SR * stretch);
-        delta(del, in) = orx(in, (in @ del)); // binary differentiaton
+        delta(del, in) = in xor (in @ del); // binary differentiaton
         uni_sigmoid(x) = 1 / (1 + exp(-x * 8 + 4)); // unipolar sigmoid
         div(x1, x2) = x1 / ba.if(   x2 < 0, // safe division
                                     min(ma.EPSILON * -1, x2),
