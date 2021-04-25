@@ -2,10 +2,10 @@ declare name "bitDSP";
 declare author "LFSaw (Till Bovermann), Dario Sanfilippo";
 declare copyright "MIT";
 
-// bit = library("bitDSP"); // main library
-// bit32 = library("bitDSP_int32"); // int32-based library
-// bitBus = library("bitDSP_binBus"); // int32-based library
-bitConv = library("bitDSP_conversion"); // conversion between formats library
+// bit = library("bitDSP.lib"); // main library
+// bit32 = library("bitDSP_int32.lib"); // int32-based library
+// bitBus = library("bitDSP_binBus.lib"); // int32-based library
+bitConv = library("bitDSP_conversion.lib"); // conversion between formats library
 
 // sc = library("scUGens.lib"); // part of https://github.com/tai-studio/faust-sc
 // lf = library("taiStudio.lib"); // part of https://github.com/tai-studio/faust-sc
@@ -431,11 +431,12 @@ noisiness(x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) :
                 317, 397, 503, 631, 797, 997, 1259, 1583, 1997, 2521, 3163, 
                     3989, 5011, 6301, 7949, 10007, 12589, 15859, 19949);
         lags = par(i, 32, (1 / ba.take(i + 1, prime_bands)) * ma.SR * stretch);
-        delta(del, in) = in orx (in @ del); // binary differentiaton
+        delta(del, in) = orx(in, (in @ del)); // binary differentiaton
         uni_sigmoid(x) = 1 / (1 + exp(-x * 8 + 4)); // unipolar sigmoid
         div(x1, x2) = x1 / ba.if(   x2 < 0, // safe division
                                     min(ma.EPSILON * -1, x2),
                                     max(ma.EPSILON, x2));
+        smooth(in) = fi.pole(1 - (1 / ma.SR), in * (1 / ma.SR));
         aad(N) = // normalised average absolute deviation
             si.bus(N) <:    (   si.bus(N) ,
                                 (si.bus(N) :> /(N) <: si.bus(N)) :
