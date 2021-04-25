@@ -303,6 +303,54 @@ bitstream_adder(x1, x2) =  loop
       };
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// Clipped integrator with state-reset input: 1 to reset, 0 to accumulate.
+//
+int_clip_r(reset, low, high, x) = clip(low, high, +(x)) ~ *(1 - reset);
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// First-order dsm with clipped and reset-state integrator; G is the ddsm gain.
+//
+ddsm1_clip_r(reset, low, high, G, x) = y
+    letrec {
+        'y = ba.if(int_clip_r(reset, low, high, x - G * y) < 0, -1, 1);
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// First-order dsm integrator with clipping and reset-state.
+//
+int1bit_clip_r(reset, low, high, G, x) = 
+    ddsm1_clip_r(reset, low, high, G, int_clip_r(reset, low, high, x));
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// First-order clipped with reset ddsm lowpass.
+//
+lp1bit_clip_r(reset, low, high, G, cf, x) = y
+    letrec {
+        'y = int1bit_clip_r(reset, low, high, G, (x - y) * cf);
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// First-order clipped with reset ddsm highpass.
+//
+hp1bit_clip_r(reset, low, high, G, cf, x) = 
+    ddsm1_clip_r(reset, low, high, G, x - y)
+    letrec {
+        'y = int1bit_clip_r(reset, low, high, G, (x - y) * cf);
+    };
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Bipolar bitwise operations.
+//
+and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
+or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
+orx(x, y) = ba.if((x > 0) xor (y > 0), 1, -1);
+// -----------------------------------------------------------------------------
 
 //---------------------------------`(bit.)bitrot`---------------------------------------
 //
@@ -467,50 +515,8 @@ clip(l, h, x) = max(l, min(h, x));
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
-// Clipped integrator with state-reset input: 1 to reset, 0 to accumulate.
+// Signal inspector
 //
-int_clip_r(reset, low, high, x) = clip(low, high, +(x)) ~ *(1 - reset);
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// First-order dsm with clipped and reset-state integrator; G is the ddsm gain.
-//
-ddsm1_clip_r(reset, low, high, G, x) = y
-    letrec {
-        'y = ba.if(int_clip_r(reset, low, high, x - G * y) < 0, -1, 1);
-    };
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// First-order dsm integrator with clipping and reset-state.
-//
-int1bit_clip_r(reset, low, high, G, x) = 
-    ddsm1_clip_r(reset, low, high, G, int_clip_r(reset, low, high, x));
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// First-order clipped with reset ddsm lowpass.
-//
-lp1bit_clip_r(reset, low, high, G, cf, x) = y
-    letrec {
-        'y = int1bit_clip_r(reset, low, high, G, (x - y) * cf);
-    };
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// First-order clipped with reset ddsm highpass.
-//
-hp1bit_clip_r(reset, low, high, G, cf, x) = 
-    ddsm1_clip_r(reset, low, high, G, x - y)
-    letrec {
-        'y = int1bit_clip_r(reset, low, high, G, (x - y) * cf);
-    };
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// Bipolar bitwise operations.
-//
-and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
-or(x, y) = ba.if((x > 0) | (y > 0), 1, -1);
-orx(x, y) = ba.if((x > 0) xor (y > 0), 1, -1);
+inspect(i, lower, upper, x) = 
+    attach(x, x : vbargraph("sig_%2i [style:numerical][2i]", lower, upper));
 // -----------------------------------------------------------------------------
