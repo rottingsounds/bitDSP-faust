@@ -496,6 +496,28 @@ noisiness(bi_x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) :
 
 // -----------------------------------------------------------------------------
 
+// relay_hysteron(A[n], B[n], x[n]); -------------------------------------------
+//
+// Relay hysteron – the basic building block of the Preisach model.
+//
+// 3 inputs:
+//    A[n], lower edge;
+//    B[n], upper edge;
+//    x[n].
+//
+// 1 outputs:
+//    y[n], relay output, 0 or 1 (non-active or active).
+//
+relay_hysteron(alpha, beta, x) =   loop 
+                                   ~ _
+with {
+    loop(fb) = ba.if(  x <= alpha, 
+                       0, ba.if(   x >= beta, 
+                                   1, 
+                                   fb));
+};
+// -----------------------------------------------------------------------------
+
 ////////////////////// utilities
 
 // r_int(x[n]); ----------------------------------------------------------------
