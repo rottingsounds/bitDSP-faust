@@ -241,23 +241,20 @@ gen3(fb1, fb2) = y1 , y2
 
 // ---------- GEN4 -------------------------------------------------------------
 //
-gen4(fb1, fb2) = y1 , y2
+gen4(fb, N) = y1 , y2
     letrec {
         'y1 = nl1(plus(bit.ddsm1_clip_r(0, -L, L, 1, nl2(plus(nl1(y2), 
-            nl2(y1))) * fb1), bit.ddsm1_clip_r(0, -L, L, 1, nl1(y1) * fb1)));
+            nl2(y1))) * fb1), bit.ddsm1_clip_r(0, -L, L, 1, nl1(y1) * fb)));
         'y2 = nl3(plus(bit.ddsm1_clip_r(0, -L, L, 1, nl4(plus(nl3(y2), 
-            nl4(y1))) * fb2), bit.ddsm1_clip_r(0, -L, L, 1, nl3(y2) * fb2)));
+            nl4(y1))) * fb2), bit.ddsm1_clip_r(0, -L, L, 1, nl3(y2) * fb)));
     }
         with {
             L = 2;
             S = 3;
-            N1 = int(hslider("N1", 0, 0, 2 ^ S - 1, 1));
+            N1 = N % S;
             N2 = (N1 + 1) % S;
             N3 = (N2 + 1) % S;
             N4 = (N3 + 1) % S;
-            //N2 = int(hslider("N2", 0, 0, 2 ^ S - 1, 1));
-            //N3 = int(hslider("N3", 0, 0, 2 ^ S - 1, 1));
-            //N4 = int(hslider("N4", 0, 0, 2 ^ S - 1, 1));
             nl1(x) = bit.pattern_bitflip_sig(S, x, N1);
             nl2(x) = bit.pattern_bitflip_sig(S, x, N2);
             nl3(x) = bit.pattern_bitflip_sig(S, x, N3);
