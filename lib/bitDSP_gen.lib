@@ -251,7 +251,7 @@ gen4(fb, N) = y1 , y2
         with {
             L = 2;
             S = 3;
-            N1 = N % S;
+            N1 = int(N) % S;
             N2 = (N1 + 1) % S;
             N3 = (N2 + 1) % S;
             N4 = (N3 + 1) % S;

@@ -533,12 +533,13 @@ noisiness(bi_x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) :
 //
 relay_hysteron(alpha, beta, x) =   loop 
                                    ~ _
-with {
-    loop(fb) = ba.if(  x <= alpha, 
-                       0, ba.if(   x >= beta, 
-                                   1, 
-                                   fb));
-};
+    with {
+        loop(fb) = ba.if(   x <= alpha, 
+                            0, 
+                            ba.if(  x >= beta, 
+                                    1, 
+                                    fb));
+    };
 // -----------------------------------------------------------------------------
 
 ////////////////////// utilities
