@@ -258,6 +258,9 @@ dsm2(x) =  loop
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 // First and second-order dsm with gain input.
 //
 ddsm1G(G, x) = y
@@ -273,6 +276,9 @@ ddsm2G(G, x) =  loop
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 // First and second-order summing busses. N is the number of signals being 
 // summed.
 //
@@ -327,12 +333,18 @@ bitstream_adder(x1, x2) =  loop
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 // Clipped integrator with state-reset input: 1 to reset, 0 to accumulate.
 //
 int_clip_r(reset, low, high, x) = clip(low, high, +(x)) ~ *(1 - reset);
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 // First-order dsm with clipped and reset-state integrator; G is the ddsm gain.
 //
 ddsm1_clip_r(reset, low, high, G, x) = y
@@ -342,6 +354,9 @@ ddsm1_clip_r(reset, low, high, G, x) = y
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 // First-order dsm integrator with clipping and reset-state.
 //
 int1bit_clip_r(reset, low, high, G, x) = 
@@ -358,6 +373,9 @@ lp1bit_clip_r(reset, low, high, G, cf, x) = y
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 // First-order clipped with reset ddsm highpass.
 //
 hp1bit_clip_r(reset, low, high, G, cf, x) = 
@@ -368,6 +386,9 @@ hp1bit_clip_r(reset, low, high, G, cf, x) =
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 // Bipolar bitwise operations.
 //
 and(x, y) = ba.if((x > 0) & (y > 0), 1, -1);
@@ -446,6 +467,9 @@ pattern_match(pattern, x) =
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 // As above but working with signal, hence potentially time-variant patterns.
 // L is the length of the pattern, x is the input signal, and N is an int
 // between 0 and 2 ^ L - 1 that is converted into binary for the comparison.
@@ -458,6 +482,9 @@ pattern_match_sig(L, x, N) =
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo) 
+//
 //
 // Flip the current bit if the pattern matches the stream.
 //
@@ -479,19 +506,6 @@ pattern_bitflip_sig(L, x, N) = ba.if(pattern_match_sig(L, x, N), -x, x);
 // Noisiness measurement based on a zero-latency approach for approximated
 // autocorrelation.
 //
-//noisiness(x) = par(i, 32, fi.pole(1 - (1 / ma.SR), (1 / ma.SR)
-//    * (x xor x@(ba.take(i + 1, lags))))) : maxN(32) ^ 2
-//        : fi.pole(1 - (1 / ma.SR), *(1 / ma.SR))
-//    with {
-//        prime_bands = ( 17, 19, 23, 31, 41, 53, 61, 79, 101, 127, 157, 199,
-//                        251, 317, 397, 503, 631, 797, 997, 1259, 1583, 1997,
-//                        2521, 3163, 3989, 5011, 6301, 7949, 10007, 12589, 15859,
-//                        19949);
-//        lags = par(i, 32, (1 / ba.take(i + 1, prime_bands)) * ma.SR);
-//        maxN(1) = _;
-//        maxN(2) = max;
-//        maxN(N) = max(maxN(N - 1));
-//    };
 noisiness(bi_x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) : 
     1 - aad(32) * cal : uni_sigmoid
     with {
@@ -516,10 +530,11 @@ noisiness(bi_x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) :
                                         par(i, N, (- : abs)) :> _) ,
                             (si.bus(N) :> / (N)) : div : /((N - 1) * 2);
     };
-
 // -----------------------------------------------------------------------------
 
 // relay_hysteron(A[n], B[n], x[n]); -------------------------------------------
+//
+// (author: Dario Sanfilippo)
 //
 // Relay hysteron – the basic building block of the Preisach model.
 //
@@ -543,6 +558,9 @@ relay_hysteron(alpha, beta, x) =   loop
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
 // Autogate is a function that gates a signal according to basic
 // statistical measures of the signal itself. Specifically, the signal
 // is integrated three times using three cascaded leaky integrators and the 
@@ -552,9 +570,6 @@ relay_hysteron(alpha, beta, x) =   loop
 // These function will be deployed in each output stage of the network, and
 // their collective behaviour will result in an autonomous mixer.
 //
-:q
-:q
-:q
 autogate(x) = x * (fi.pole(pole, (fi.pole(pole, fi.pole(pole, x)))) > 0)
     with {
         pole = 1 - ma.EPSILON;
