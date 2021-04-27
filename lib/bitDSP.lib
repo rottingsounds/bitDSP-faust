@@ -542,6 +542,25 @@ relay_hysteron(alpha, beta, x) =   loop
     };
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// Autogate is a function that gates a signal according to basic
+// statistical measures of the signal itself. Specifically, the signal
+// is integrated three times using three cascaded leaky integrators and the 
+// sign determines whether the gate is open or closed. Essentially,
+// the gating mechanism is determined by the polarity tendency of the signal.
+//
+// These function will be deployed in each output stage of the network, and
+// their collective behaviour will result in an autonomous mixer.
+//
+:q
+:q
+:q
+autogate(x) = x * (fi.pole(pole, (fi.pole(pole, fi.pole(pole, x)))) > 0)
+    with {
+        pole = 1 - ma.EPSILON;
+    };
+// -----------------------------------------------------------------------------
+
 ////////////////////// utilities
 
 // r_int(x[n]); ----------------------------------------------------------------
