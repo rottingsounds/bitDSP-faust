@@ -576,6 +576,23 @@ autogate(x) = x * (fi.pole(pole, (fi.pole(pole, fi.pole(pole, x)))) > 0)
     };
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+//
+// Drafting function for autonomous parameter modulation
+//
+autoparam(x) = ba.if(sel, sah, variant)
+    with {
+        info = noisiness(x);
+        sel = relay_hysteron(.25, .75, info);
+        sah = ba.sAndH(t, variant)
+            with {
+                t = v_diff * v_diff' < 0;
+                v_diff = variant - variant';
+            };
+        variant = sin(os.phasor(2.0 * ma.PI, info));
+    };
+// -----------------------------------------------------------------------------
+
 ////////////////////// utilities
 
 // r_int(x[n]); ----------------------------------------------------------------
