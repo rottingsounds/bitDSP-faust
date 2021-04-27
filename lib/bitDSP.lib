@@ -26,7 +26,7 @@ fi = library("filters.lib");
 ma = library("maths.lib");
 // mi = library("mi.lib");
 // ef = library("misceffects.lib");
-// os = library("oscillators.lib");
+os = library("oscillators.lib");
 // no = library("noises.lib");
 // pf = library("phaflangers.lib");
 // pl = library("platform.lib");
@@ -522,7 +522,6 @@ noisiness(bi_x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) :
         div(x1, x2) = x1 / ba.if(   x2 < 0, // safe division
                                     min(ma.EPSILON * -1, x2),
                                     max(ma.EPSILON, x2));
-        smooth(in) = fi.pole(1 - (1 / ma.SR), in * (1 / ma.SR));
         aad(N) = // normalised average absolute deviation
             si.bus(N) <:    (   si.bus(N) ,
                                 (si.bus(N) :> /(N) <: si.bus(N)) :
@@ -580,20 +579,44 @@ autogate(x) = x * (fi.pole(pole, (fi.pole(pole, fi.pole(pole, x)))) > 0)
 //
 // Drafting function for autonomous parameter modulation
 //
-autoparam(x) = ba.if(sel, sah, variant)
+//autoparam(x) = info , info2
+autoparam(x) = info , sah//ma.frac(sah + .1)
+//autoparam(x) = ba.if(sel, sah, ma.frac(sah + slow_variant + .1)) 
     with {
-        info = noisiness(x);
-        sel = relay_hysteron(.25, .75, info);
-        sah = ba.sAndH(t, variant)
+        info = noisiness(x); 
+        //info = noisiness(x) ^ 2.0 : ma.tanh(seq(i, 5, lp1p(cf)));
+        sel = relay_hysteron(.3, .7, info);
+        sah = t
+        //sah = ba.sAndH(t, fast_variant)
             with {
-                t = v_diff * v_diff' < 0;
-                v_diff = variant - variant';
+                t = fi.pole(1, (i_diff * i_diff') < 0);
+                //t = (int(+(i_diff * i_diff' < 0)) ~ %(S)) == 0;
+                i_diff = info - info';
             };
-        variant = sin(os.phasor(2.0 * ma.PI, info));
+        fast_variant = (sin(os.phasor(2.0 * ma.PI, info)) + 1) * .5;
+        slow_variant = (sin(os.phasor(2.0 * ma.PI, info / divider)) + 1) * .5;
+        divider = hslider("divider", 1, 1, 1920000, .001);
+        S = hslider("sah period", 1, 1, 192000, 1);
+        cf = hslider("cf", 1, ma.EPSILON, 1, .000001);
     };
 // -----------------------------------------------------------------------------
 
 ////////////////////// utilities
+
+// -----------------------------------------------------------------------------
+//
+// (author: Dario Sanfilippo)
+//
+// Smoothing function with a one-pole lowpass. Cut-off is 1/(2pi) Hz.
+//
+//smooth(in) = fi.pole(1 - (1 / ma.SR), in * (1 / ma.SR));
+smooth(in) = fi.pole(1 - (1 / (ma.SR * 20)), in * (1 / (ma.SR * 20)));
+// -----------------------------------------------------------------------------
+
+lp1p(cf, x) = fi.pole(p, x * (1 - p))
+    with {
+        p = exp(-2 * ma.PI * cf / ma.SR);
+    };
 
 // r_int(x[n]); ----------------------------------------------------------------
 //
