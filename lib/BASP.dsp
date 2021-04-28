@@ -12,7 +12,7 @@ init = .1890809373898301;
 
 gate_rate = 1000 ^ hslider("[00]Gate de/activation rate (.001-1000 Hz)", 0, -1, 1, .000001);
 sah_rate = 1000 ^ hslider("[01]Stepped changes rate (.001-1000 Hz)", 0, -1, 1, .000001);
-diff_rate = 1000 ^ hslider("[02]Parameter glissandirate (.001-1000 Hz)", 0, -1, 1, .000001);
+diff_rate = 1000 ^ hslider("[02]Parameter glissandi rate (.001-1000 Hz)", 0, -1, 1, .000001);
 
 alpha = hslider("[03]Lower relay threshold", .5, 0, 1, .000001);
 beta = hslider("[04]Upper relay threshold", .8, 0, 1, .000001);
