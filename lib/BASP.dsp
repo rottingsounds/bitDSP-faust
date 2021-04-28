@@ -14,8 +14,8 @@ gate_rate = 1000 ^ hslider("[00]Gate de/activation rate (.001-1000 Hz)", 0, -1, 
 sah_rate = 1000 ^ hslider("[01]Stepped changes rate (.001-1000 Hz)", 0, -1, 1, .000001);
 diff_rate = 1000 ^ hslider("[02]Parameter glissandi rate (.001-1000 Hz)", 0, -1, 1, .000001);
 
-alpha = hslider("[03]Lower relay threshold", .5, 0, 1, .000001);
-beta = hslider("[04]Upper relay threshold", .8, 0, 1, .000001);
+alpha = hslider("[03]Off relay threshold", .5, 0, 1, .000001);
+beta = hslider("[04]On relay threshold", .8, 0, 1, .000001);
 
 circular = route(8, 8, (1,3), (2,4), (3,5), (4,6), (5,7), (6,8), (7,1), (8,2));
 
