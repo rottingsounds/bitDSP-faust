@@ -577,7 +577,7 @@ autogate(rate, x) = x * (x : seq(i, 4, lp1p(rate)) > 0);
 // Autonomous parameter modulation based on noisiness analysis.
 //
 autoparam(sah_rate, diff_rate, alpha, beta, x) = 
-    ma.frac(ba.if(inspect(0, 0, 1, sel), sah, sah + v_diff_acc(sel)))
+    ma.frac(ba.if(sel, sah, sah + v_diff_acc(sel)))
     with {
         // low-rate information signal
         info = noisiness(sah_rate, x) : seq(i, 4, lp1p(sah_rate));
