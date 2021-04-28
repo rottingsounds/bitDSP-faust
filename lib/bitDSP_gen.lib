@@ -255,7 +255,7 @@ gen4(fb_, pattern_) = y1 , y2
             nl4(y1))) * fb), bit.ddsm1_clip_r(0, -L, L, 1, nl3(y2) * fb)));
     }
         with {
-            fb = ma.frac(fb_);
+            fb = ma.tanh(3 * (fb_ * 2 - 1));
             pattern = ma.frac(pattern_);
             L = 2;
             S = 3;

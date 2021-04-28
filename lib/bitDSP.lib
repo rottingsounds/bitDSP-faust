@@ -506,7 +506,7 @@ pattern_bitflip_sig(L, x, N) = ba.if(pattern_match_sig(L, x, N), -x, x);
 // Noisiness measurement based on a zero-latency approach for approximated
 // autocorrelation.
 //
-noisiness(bi_x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) : 
+noisiness(rate, bi_x) = par(i, 32, lp1p(rate, abs(delta(ba.take(i + 1, lags), x)))) : 
     1 - aad(32) * cal : uni_sigmoid
     with {
         x = bi_x > 0;
@@ -518,7 +518,7 @@ noisiness(bi_x) = par(i, 32, smooth(abs(delta(ba.take(i + 1, lags), x)))) :
                     3989, 5011, 6301, 7949, 10007, 12589, 15859, 19949);
         lags = par(i, 32, (1 / ba.take(i + 1, prime_bands)) * ma.SR * stretch);
         delta(del, in) = in xor (in @ del); // binary differentiaton
-        uni_sigmoid(x) = 1 / (1 + exp(-x * 8 + 4)); // unipolar sigmoid
+        uni_sigmoid(x) = 1 / (1 + exp(-x * 4 + 2)); // unipolar sigmoid
         div(x1, x2) = x1 / ba.if(   x2 < 0, // safe division
                                     min(ma.EPSILON * -1, x2),
                                     max(ma.EPSILON, x2));
@@ -569,22 +569,20 @@ relay_hysteron(alpha, beta, x) =   loop
 // These function will be deployed in each output stage of the network, and
 // their collective behaviour will result in an autonomous mixer.
 //
-autogate(x) = x * (fi.pole(pole, (fi.pole(pole, fi.pole(pole, x)))) > 0)
-    with {
-        pole = 1 - ma.EPSILON;
-    };
+autogate(rate, x) = x * (x : seq(i, 4, lp1p(rate)) > 0);
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
 //
 // Autonomous parameter modulation based on noisiness analysis.
 //
-autoparam(x) = ma.frac(ba.if(sel, sah + v_diff_acc(sel), sah))
+autoparam(sah_rate, diff_rate, alpha, beta, x) = 
+    ma.frac(ba.if(sel, sah, sah + v_diff_acc(sel)))
     with {
         // low-rate information signal
-        info = noisiness(x) ^ 2.0 : seq(i, 5, lp1p(1 / 60));
+        info = noisiness(sah_rate, x) : seq(i, 4, lp1p(sah_rate));
         // switching section between stepped and continuous modulation
-        sel = relay_hysteron(.5, .9, info);
+        sel = relay_hysteron(alpha, beta, info);
         // stepped modulator triggered by direction changes in info
         sah = ba.sAndH(t, variant)
             with {
@@ -597,7 +595,7 @@ autoparam(x) = ma.frac(ba.if(sel, sah + v_diff_acc(sel), sah))
                     };
             };
         // continuous modulation through low-rate shift of the sah value
-        variant = (sin(os.phasor(2.0 * ma.PI, info / 60)) + 1) * .5;
+        variant = (sin(os.phasor(2.0 * ma.PI, info * diff_rate)) + 1) * .5;
         v_diff_acc(reset) = fi.pole(reset, abs(variant - variant') / ma.SR);
     };
 // -----------------------------------------------------------------------------
@@ -647,7 +645,7 @@ inspect(i, lower, upper, x) =
 // Signal inspector
 //
 meter(i, lower, upper, x) =
-    attach(x, x : abs : ba.linear2db : vbargraph("Level_%2i", lower, upper));
+    attach(x, x : abs : ba.linear2db : hbargraph("Level_%2i", lower, upper));
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
