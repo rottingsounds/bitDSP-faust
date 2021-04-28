@@ -577,27 +577,28 @@ autogate(x) = x * (fi.pole(pole, (fi.pole(pole, fi.pole(pole, x)))) > 0)
 
 // -----------------------------------------------------------------------------
 //
-// Drafting function for autonomous parameter modulation
+// Autonomous parameter modulation based on noisiness analysis.
 //
-//autoparam(x) = info , info2
-autoparam(x) = info , sah//ma.frac(sah + .1)
-//autoparam(x) = ba.if(sel, sah, ma.frac(sah + slow_variant + .1)) 
+autoparam(x) = ma.frac(ba.if(sel, sah + v_diff_acc(sel), sah))
     with {
-        info = noisiness(x); 
-        //info = noisiness(x) ^ 2.0 : ma.tanh(seq(i, 5, lp1p(cf)));
-        sel = relay_hysteron(.3, .7, info);
-        sah = t
-        //sah = ba.sAndH(t, fast_variant)
+        // low-rate information signal
+        info = noisiness(x) ^ 2.0 : seq(i, 5, lp1p(1 / 60));
+        // switching section between stepped and continuous modulation
+        sel = relay_hysteron(.5, .9, info);
+        // stepped modulator triggered by direction changes in info
+        sah = ba.sAndH(t, variant)
             with {
-                t = fi.pole(1, (i_diff * i_diff') < 0);
-                //t = (int(+(i_diff * i_diff' < 0)) ~ %(S)) == 0;
-                i_diff = info - info';
+                t = dir_change;
+                dir_change = nonzero_diff * nonzero_diff' < 0
+                    with {
+                        nonzero_diff = 
+                            ba.sAndH(abs(i_diff) > ma.EPSILON, i_diff);
+                        i_diff = info - info';
+                    };
             };
-        fast_variant = (sin(os.phasor(2.0 * ma.PI, info)) + 1) * .5;
-        slow_variant = (sin(os.phasor(2.0 * ma.PI, info / divider)) + 1) * .5;
-        divider = hslider("divider", 1, 1, 1920000, .001);
-        S = hslider("sah period", 1, 1, 192000, 1);
-        cf = hslider("cf", 1, ma.EPSILON, 1, .000001);
+        // continuous modulation through low-rate shift of the sah value
+        variant = (sin(os.phasor(2.0 * ma.PI, info / 60)) + 1) * .5;
+        v_diff_acc(reset) = fi.pole(reset, abs(variant - variant') / ma.SR);
     };
 // -----------------------------------------------------------------------------
 
