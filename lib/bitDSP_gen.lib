@@ -197,24 +197,28 @@ trck(c1,c2) = y2 | y3 | y1, y5 | y4 letrec {
 
 // ---------- GEN1 -------------------------------------------------------------
 //
-gen1(cf1, cf2) = y1 , y2
+gen1(cf1_, cf2_) = y1 , y2
     letrec {
         'y1 = bit.lp1bit_clip_r(0, -L, L, 1, cf1, y2);
         'y2 = bit.hp1bit_clip_r(0, -L, L, 1, cf2, y1);
     }
         with {
+            cf1 = ma.frac(cf1_);
+            cf2 = ma.frac(cf2_);
             L = 4;
         };
 // -----------------------------------------------------------------------------
 
 // ---------- GEN2 -------------------------------------------------------------
 //
-gen2(G, fb) = y1 , y2
+gen2(G_, fb_) = y1 , y2
     letrec {
         'y1 = bit.orx(y2, bit.int1bit_clip_r(reset(y1), -L, L, G, y1 * fb));
         'y2 = bit.orx(y1, bit.int1bit_clip_r(reset(y2), -L, L, G, y2 * -fb));
     }
         with {
+            G = ma.frac(G_) * 1024;
+            fb = ma.frac(fb_);
             L = 1024;
             reset(x) = ba.if(cond, 1, 0)
                 with {
@@ -243,7 +247,7 @@ gen3(fb1_, fb2_) = y1 , y2
 
 // ---------- GEN4 -------------------------------------------------------------
 //
-gen4(fb, pattern) = y1 , y2
+gen4(fb_, pattern_) = y1 , y2
     letrec {
         'y1 = nl1(plus(bit.ddsm1_clip_r(0, -L, L, 1, nl2(plus(nl1(y2), 
             nl2(y1))) * fb), bit.ddsm1_clip_r(0, -L, L, 1, nl1(y1) * fb)));
@@ -251,6 +255,8 @@ gen4(fb, pattern) = y1 , y2
             nl4(y1))) * fb), bit.ddsm1_clip_r(0, -L, L, 1, nl3(y2) * fb)));
     }
         with {
+            fb = ma.frac(fb_);
+            pattern = ma.frac(pattern_);
             L = 2;
             S = 3;
             N1 = int(pattern * S) % S;
