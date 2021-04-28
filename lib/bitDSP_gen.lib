@@ -243,7 +243,7 @@ gen3(fb1_, fb2_) = y1 , y2
 
 // ---------- GEN4 -------------------------------------------------------------
 //
-gen4(fb, N) = y1 , y2
+gen4(fb, pattern) = y1 , y2
     letrec {
         'y1 = nl1(plus(bit.ddsm1_clip_r(0, -L, L, 1, nl2(plus(nl1(y2), 
             nl2(y1))) * fb1), bit.ddsm1_clip_r(0, -L, L, 1, nl1(y1) * fb)));
@@ -253,7 +253,7 @@ gen4(fb, N) = y1 , y2
         with {
             L = 2;
             S = 3;
-            N1 = int(N) % S;
+            N1 = int(pattern * S) % S;
             N2 = (N1 + 1) % S;
             N3 = (N2 + 1) % S;
             N4 = (N3 + 1) % S;
