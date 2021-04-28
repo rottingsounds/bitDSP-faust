@@ -649,5 +649,5 @@ inspect(i, lower, upper, x) =
 //
 // One-bit to multi-bit converter.
 //
-onebit2mbit(x) = fi.highpass(1, 20) : fi.lowpass(2, 20000);
+onebit2mbit(x) = x : fi.highpass(1, 20) : fi.lowpass(2, 20000);
 // -----------------------------------------------------------------------------
