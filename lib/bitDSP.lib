@@ -576,27 +576,32 @@ autogate(rate, x) = x * (x : seq(i, 4, lp1p(rate)) > 0);
 //
 // Autonomous parameter modulation based on noisiness analysis.
 //
-autoparam(sah_rate, diff_rate, alpha, beta, x) = 
-    ma.frac(ba.if(sel, sah, sah + v_diff_acc(sel)))
+autoparam(step_rate, incr_rate, alpha, beta, x) = 
+    ma.frac(ba.if(sel, step, step + incr(sel)))
+//autoparam(sel, sah_rate, diff_rate, alpha, beta, x) = 
+//    ma.frac(sah + v_diff_acc(sel))
     with {
-        // low-rate information signal
-        info = noisiness(sah_rate, x) : seq(i, 4, lp1p(sah_rate));
+        info = noisiness(1 / 8, x);
+        step_info = info : seq(i, 3, lp1p(step_rate));
+        incr_info = info : seq(i, 3, lp1p(incr_rate));
         // switching section between stepped and continuous modulation
         sel = relay_hysteron(alpha, beta, info);
         // stepped modulator triggered by direction changes in info
-        sah = ba.sAndH(t, variant)
+        step = ba.sAndH(dir_change, variant)
             with {
-                t = dir_change;
-                dir_change = nonzero_diff * nonzero_diff' < 0
+                dir_change = nonzero_s_diff * nonzero_s_diff' < 0
                     with {
-                        nonzero_diff = 
-                            ba.sAndH(abs(i_diff) > ma.EPSILON, i_diff);
-                        i_diff = info - info';
+                        nonzero_s_diff = 
+                            ba.sAndH(abs(s_diff) > ma.EPSILON, s_diff);
+                        s_diff = step_info - step_info';
                     };
+                variant = (sin(os.phasor(2.0 * ma.PI, step_info)) + 1) * .5;
             };
-        // continuous modulation through low-rate shift of the sah value
-        variant = (sin(os.phasor(2.0 * ma.PI, info * diff_rate)) + 1) * .5;
-        v_diff_acc(reset) = fi.pole(reset, abs(variant - variant') / ma.SR);
+        // continuous modulation through low-rate shift of the step value
+        incr(reset) = fi.pole(reset, abs(i_diff) / ma.SR) 
+            with {
+                i_diff = incr_info - incr_info';
+            };
     };
 // -----------------------------------------------------------------------------
 
