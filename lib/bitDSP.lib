@@ -578,8 +578,6 @@ autogate(rate, x) = x * (x : seq(i, 4, lp1p(rate)) > 0);
 //
 autoparam(step_rate, incr_rate, alpha, beta, x) = 
     ma.frac(ba.if(sel, step, step + incr(sel)))
-//autoparam(sel, sah_rate, diff_rate, alpha, beta, x) = 
-//    ma.frac(sah + v_diff_acc(sel))
     with {
         info = noisiness(1 / 8, x);
         step_info = info : seq(i, 3, lp1p(step_rate));
