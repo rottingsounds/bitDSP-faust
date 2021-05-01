@@ -252,7 +252,7 @@ gen4(fb_, pattern_) = y1 , y2
         'y1 = nl1(plus(bit.ddsm1_clip_r(0, -L, L, 1, nl2(plus(nl1(y2), 
             nl2(y1))) * fb), bit.ddsm1_clip_r(0, -L, L, 1, nl1(y1) * fb)));
         'y2 = nl3(plus(bit.ddsm1_clip_r(0, -L, L, 1, nl4(plus(nl3(y2), 
-            nl4(y1))) * fb), bit.ddsm1_clip_r(0, -L, L, 1, nl3(y2) * fb)));
+            nl4(y1))) * -fb), bit.ddsm1_clip_r(0, -L, L, 1, nl3(y2) * -fb)));
     }
         with {
             fb = ma.tanh(3 * (fb_ * 2 - 1));
